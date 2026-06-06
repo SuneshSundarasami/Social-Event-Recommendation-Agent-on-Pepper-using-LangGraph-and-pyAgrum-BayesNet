@@ -36,6 +36,10 @@ class ConsoleBehaviour:
     def gesture(self, name: str) -> None:
         print("  [Pepper] (gesture) %s" % name)
 
+    def say_with_gesture(self, text: str, name: str) -> None:
+        print("  [Pepper] (gesture) %s" % name)
+        print("  [Pepper] (says)    %s" % text)
+
     def present(self, result: Result) -> None:
         print("  [Pepper] (presents top events):")
         for i, item in enumerate(result[:3], start=1):

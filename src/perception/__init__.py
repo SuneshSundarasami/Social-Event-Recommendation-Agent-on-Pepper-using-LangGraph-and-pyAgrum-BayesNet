@@ -3,6 +3,7 @@
 from perception.face_detector import (  # noqa: F401
     HaarFaceDetector,
     PepperCameraSource,
+    PreviewPerception,
     ScriptedPerception,
     WebcamSource,
 )

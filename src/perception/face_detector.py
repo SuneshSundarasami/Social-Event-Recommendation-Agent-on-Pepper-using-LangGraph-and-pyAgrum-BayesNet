@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import collections
 import logging
+import threading
+import time
 from typing import Deque, Optional
 
 log = logging.getLogger("wp1.perception")
@@ -116,9 +118,14 @@ class HaarFaceDetector:
         if self.cascade.empty():
             raise RuntimeError("Failed to load Haar cascade from %r." % cascade_path)
 
+        # Last frame/faces from tick() — handy for visual diagnostics.
+        self.last_frame = None
+        self.last_faces = []
+
     def tick(self) -> bool:
         frame = self.source.read()
         detected = False
+        faces = []
         if frame is not None:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = self.cascade.detectMultiScale(
@@ -128,6 +135,8 @@ class HaarFaceDetector:
                 minSize=(self.min_face_size, self.min_face_size),
             )
             detected = len(faces) > 0
+        self.last_frame = frame
+        self.last_faces = faces
         self._window.append(detected)
         return detected
 
@@ -143,6 +152,145 @@ class HaarFaceDetector:
 
     def release(self) -> None:
         self.source.release()
+
+
+# ---------------------------------------------------------------------------
+# Preview wrapper — shows a live OpenCV window with detection overlay
+# ---------------------------------------------------------------------------
+
+class PreviewPerception:
+    """Wraps any detector exposing ``last_frame``/``last_faces`` (e.g.
+    ``HaarFaceDetector``) and renders a live preview window on every tick.
+
+    Transparent decorator: forwards the full ``Perception`` interface, so it can
+    be dropped in anywhere a detector is expected. The window updates whenever
+    the FSM ticks perception (idle loop, presence checks, ack wait).
+    """
+
+    def __init__(self, inner, window_name: str = "Webcam - face detection") -> None:
+        if cv2 is None:
+            raise RuntimeError("OpenCV (cv2) is required for PreviewPerception.")
+        self.inner = inner
+        self.window_name = window_name
+
+    def tick(self) -> bool:
+        detected = self.inner.tick()
+        frame = getattr(self.inner, "last_frame", None)
+        if frame is not None:
+            disp = frame.copy()
+            for (x, y, w, h) in getattr(self.inner, "last_faces", []):
+                cv2.rectangle(disp, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            stable = self.inner.face_stable()
+            present = self.inner.is_present()
+            if stable:
+                label, color = "STABLE", (0, 255, 0)
+            elif present:
+                label, color = "present", (0, 200, 255)
+            else:
+                label, color = "searching", (0, 0, 255)
+            cv2.putText(disp, label, (10, 25),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+            cv2.imshow(self.window_name, disp)
+            cv2.waitKey(1)
+        return detected
+
+    def face_stable(self) -> bool:
+        return self.inner.face_stable()
+
+    def is_present(self) -> bool:
+        return self.inner.is_present()
+
+    def reset(self) -> None:
+        self.inner.reset()
+
+    def release(self) -> None:
+        self.inner.release()
+        try:
+            cv2.destroyWindow(self.window_name)
+        except Exception:
+            pass
+
+
+# ---------------------------------------------------------------------------
+# Threaded wrapper — keeps capture + preview alive on a background thread
+# ---------------------------------------------------------------------------
+
+class ThreadedPerception:
+    """Runs an inner detector on its own thread so detection and the preview
+    window keep updating even when the main thread is blocked (e.g. waiting on
+    console input during the dialogue, or sleeping through a gesture).
+
+    Without this, the OpenCV window only refreshes when the FSM happens to call
+    ``tick()`` and so appears to "freeze" the moment the interaction starts.
+
+    All OpenCV highgui calls happen on this one background thread (required for
+    stability); the FSM-facing methods are cheap, lock-guarded accessors.
+    """
+
+    def __init__(self, inner, preview: bool = True, fps: float = 15.0,
+                 window_name: str = "Webcam - face detection") -> None:
+        self.inner = inner
+        self.preview = preview and cv2 is not None
+        self.window_name = window_name
+        self._period = 1.0 / fps if fps > 0 else 0.0
+        self._lock = threading.Lock()
+        self._stop = threading.Event()
+        self._detected = False
+        self._thread = threading.Thread(target=self._loop, name="perception", daemon=True)
+        self._thread.start()
+
+    def _loop(self) -> None:
+        while not self._stop.is_set():
+            with self._lock:
+                detected = self.inner.tick()
+                self._detected = detected
+                frame = getattr(self.inner, "last_frame", None)
+                faces = list(getattr(self.inner, "last_faces", []))
+                stable = self.inner.face_stable()
+                present = self.inner.is_present()
+            if self.preview and frame is not None:
+                disp = frame.copy()
+                for (x, y, w, h) in faces:
+                    cv2.rectangle(disp, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                if stable:
+                    label, color = "STABLE", (0, 255, 0)
+                elif present:
+                    label, color = "present", (0, 200, 255)
+                else:
+                    label, color = "searching", (0, 0, 255)
+                cv2.putText(disp, label, (10, 25),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+                cv2.imshow(self.window_name, disp)
+                cv2.waitKey(1)
+            if self._period:
+                time.sleep(self._period)
+        if self.preview:
+            try:
+                cv2.destroyWindow(self.window_name)
+                cv2.waitKey(1)
+            except Exception:
+                pass
+
+    # The background thread does the real work; tick() just reports latest state.
+    def tick(self) -> bool:
+        return self._detected
+
+    def face_stable(self) -> bool:
+        with self._lock:
+            return self.inner.face_stable()
+
+    def is_present(self) -> bool:
+        with self._lock:
+            return self.inner.is_present()
+
+    def reset(self) -> None:
+        with self._lock:
+            self.inner.reset()
+
+    def release(self) -> None:
+        self._stop.set()
+        self._thread.join(timeout=2.0)
+        self.inner.release()
 
 
 # ---------------------------------------------------------------------------

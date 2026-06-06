@@ -28,40 +28,69 @@ from state_machine import InteractionFSM  # noqa: E402
 from stubs import ConsoleBehaviour, StubDialogueManager, StubRecommender  # noqa: E402
 
 
-def build_perception(args):
-    """Construct a Perception implementation from CLI args.
+def _spawn_pepper(args):
+    """Launch qiBullet, spawn Pepper, and frame the GUI camera on its face."""
+    import pybullet as p
+    from qibullet import SimulationManager
 
-    Returns (perception, cleanup_callable).
-    """
+    sim = SimulationManager()
+    client = sim.launchSimulation(gui=not args.headless)
+    pepper = sim.spawnPepper(client, spawn_ground_plane=True)
+    pepper.goToPosture("Stand", 0.6)
+
+    if not args.headless:
+        # Set camera to face Pepper's face from the front.
+        p.resetDebugVisualizerCamera(
+            cameraDistance=1.5,
+            cameraYaw=90,
+            cameraPitch=0,
+            cameraTargetPosition=[0, 0, 1.4],
+            physicsClientId=client,
+        )
+    return sim, client, pepper
+
+
+def build_components(args):
+    """Construct (perception, behaviour, cleanup) from CLI args."""
     if args.source == "scripted":
         from perception.face_detector import ScriptedPerception
 
         # Become stable quickly; "leave" shortly after the recommendation so the
         # acknowledgement wait returns promptly and the demo ends cleanly.
-        return ScriptedPerception(stable_after=3, leaves_after=12), (lambda: None)
+        perception = ScriptedPerception(stable_after=3, leaves_after=12)
+        return perception, ConsoleBehaviour(), (lambda: None)
 
     if args.source == "webcam":
-        from perception.face_detector import HaarFaceDetector, WebcamSource
+        from perception.face_detector import HaarFaceDetector, ThreadedPerception, WebcamSource
 
-        source = WebcamSource(args.camera_index)
-        det = HaarFaceDetector(source)
-        return det, det.release
+        det = HaarFaceDetector(WebcamSource(args.camera_index))
+        # Threaded preview so the window stays live during the (blocking) dialogue.
+        perception = ThreadedPerception(det, preview=True) if args.preview else det
+        return perception, ConsoleBehaviour(), perception.release
 
-    if args.source == "pepper":
-        from qibullet import SimulationManager
-        from perception.face_detector import HaarFaceDetector, PepperCameraSource
+    if args.source in ("pepper", "hybrid"):
+        from behaviour.pepper_behaviour import PepperBehaviour
+        from perception.face_detector import HaarFaceDetector
 
-        sim = SimulationManager()
-        client = sim.launchSimulation(gui=not args.headless)
-        pepper = sim.spawnPepper(client, spawn_ground_plane=True)
-        source = PepperCameraSource(pepper)
-        det = HaarFaceDetector(source)
+        sim, client, pepper = _spawn_pepper(args)
+        behaviour = PepperBehaviour(pepper)
+
+        if args.source == "pepper":
+            from perception.face_detector import PepperCameraSource
+
+            perception = HaarFaceDetector(PepperCameraSource(pepper))
+        else:  # hybrid: Pepper's body in sim, face detection from the webcam
+            from perception.face_detector import ThreadedPerception, WebcamSource
+
+            det = HaarFaceDetector(WebcamSource(args.camera_index))
+            perception = ThreadedPerception(det, preview=True)
 
         def cleanup():
-            det.release()
+            behaviour.shutdown()
+            perception.release()
             sim.stopSimulation(client)
 
-        return det, cleanup
+        return perception, behaviour, cleanup
 
     raise ValueError("Unknown source: %s" % args.source)
 
@@ -70,11 +99,17 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="WP1: perception + interaction FSM.")
     parser.add_argument(
         "--source",
-        choices=["scripted", "webcam", "pepper"],
+        choices=["scripted", "webcam", "pepper", "hybrid"],
         default="scripted",
-        help="Perception source (default: scripted, needs no hardware).",
+        help="Perception source: scripted (no hardware), webcam, pepper "
+             "(qiBullet camera), or hybrid (Pepper in qiBullet + webcam detection).",
     )
     parser.add_argument("--camera-index", type=int, default=0, help="Webcam index.")
+    parser.add_argument(
+        "--preview",
+        action="store_true",
+        help="Show a webcam preview window with detection boxes (auto-on for hybrid).",
+    )
     parser.add_argument("--headless", action="store_true", help="qiBullet without GUI.")
     parser.add_argument(
         "--interactive",
@@ -98,11 +133,10 @@ def main(argv=None) -> int:
         format="%(levelname)s %(name)s: %(message)s",
     )
 
-    perception, cleanup = build_perception(args)
+    perception, behaviour, cleanup = build_components(args)
 
     dialogue = StubDialogueManager(interactive=args.interactive)
     recommender = StubRecommender()
-    behaviour = ConsoleBehaviour()
 
     # Scripted mode is a quick self-contained demo: fast polling, short ack wait.
     if args.source == "scripted":

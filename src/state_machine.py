@@ -136,10 +136,13 @@ class InteractionFSM:
                 name = self.name_provider()
             except Exception:
                 name = None
-        greeting = "Hello %s! Nice to see you." % name if name else "Hello there! Nice to see you."
-        self.behaviour.gesture("wave")
-        self.behaviour.say(greeting)
-        self.behaviour.say("I can recommend a social event for you.")
+        hello = "Hello %s!" % name if name else "Hello there!"
+        # Two coordinated beats: each line and its gesture start together and
+        # the FSM waits for both to finish before the next.
+        self.behaviour.say_with_gesture(hello, "wave")
+        self.behaviour.say_with_gesture("Nice to see you.", "nod")
+        self.behaviour.say_with_gesture(
+            "I can recommend a social event for you.", "open_arms")
 
         if not self._still_present():
             log.info("User left during greeting -> Idle")
@@ -147,7 +150,6 @@ class InteractionFSM:
         return State.CONVERSATION
 
     def _conversation(self) -> State:
-        self.behaviour.gesture("nod")  # attentive
         raw = self.dialogue.collect_evidence()
         self.evidence = validate_evidence(raw)
         log.info("Collected evidence: %s", self.evidence)
@@ -158,8 +160,7 @@ class InteractionFSM:
         return State.REASONING
 
     def _reasoning(self) -> State:
-        self.behaviour.gesture("think")
-        self.behaviour.say("Let me think about that.")
+        self.behaviour.say_with_gesture("Let me think about that.", "think")
         self.result = self.recommender.recommend(self.evidence) or []
         log.info("Recommendation result: %s", self.result)
         return State.RECOMMENDATION
@@ -172,7 +173,9 @@ class InteractionFSM:
 
         top = self.result[0]
         top_event = str(top.get("event", "an event"))
-        self.behaviour.say("Based on what you told me, I recommend the following.")
+        # Open-palm gesture and the intro line start together and end together.
+        self.behaviour.say_with_gesture(
+            "Based on what you told me, I recommend the following.", "present")
         self.behaviour.present(self.result)  # presents top events (WP4)
         try:
             reason = self.recommender.explain(top_event, self.evidence)
@@ -180,14 +183,13 @@ class InteractionFSM:
             reason = ""
         if reason:
             self.behaviour.say(reason)
-        self.behaviour.gesture("present")  # open-palm presentation
 
         self._wait_for_ack()
         return State.FAREWELL
 
     def _farewell(self) -> State:
-        self.behaviour.say("Have a great time! Goodbye.")
-        self.behaviour.gesture("wave")
+        # Wave and speak the goodbye together, waiting for both to finish.
+        self.behaviour.say_with_gesture("Have a great time! Goodbye.", "wave")
         self._reset_interaction()
         return State.IDLE
 

@@ -132,5 +132,9 @@ class Behaviour(Protocol):
     def gesture(self, name: str) -> None:
         ...
 
+    def say_with_gesture(self, text: str, name: str) -> None:
+        """Start speech and gesture simultaneously; block until BOTH finish."""
+        ...
+
     def present(self, result: Result) -> None:
         ...
