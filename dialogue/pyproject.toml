@@ -1,0 +1,34 @@
+[project]
+name = "dialogue-service"
+version = "0.1.0"
+description = "WP2 — LangGraph dialogue manager + LLM evidence parser (Groq)."
+readme = "README.md"
+# LangGraph needs >=3.9; this service runs separately from the 3.8 robot side
+# and is exposed to it via collect_evidence() (bridge wired in WP5).
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=0.2.0",
+    "openai>=1.40",          # xAI Grok via the OpenAI-compatible API
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# Speech input — installed separately so a pyaudio build issue can't block the
+# core graph: `uv sync --extra speech`
+speech = [
+    "SpeechRecognition>=3.10",
+    "pyaudio>=0.2.13",
+]
+
+[dependency-groups]
+dev = [
+    "langgraph-cli[inmem]>=0.4.30",
+    "pytest>=8.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

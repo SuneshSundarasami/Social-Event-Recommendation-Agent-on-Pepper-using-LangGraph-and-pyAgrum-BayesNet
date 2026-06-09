@@ -17,6 +17,9 @@ wheels/
 # uv
 .uv/
 
+# LangGraph dev server runtime/persistence
+.langgraph_api/
+
 # OS / editor
 .DS_Store
 .idea/
