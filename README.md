@@ -13,10 +13,14 @@ contracts, and design notes.
 | WP | Component | State |
 |----|-----------|-------|
 | WP1 | Perception + interaction FSM | ✅ implemented (`src/`) |
-| WP2 | Dialogue manager (LangGraph) | stubbed |
+| WP2 | Dialogue manager (LangGraph + Groq) | ✅ implemented (`dialogue/`) |
 | WP3 | Bayesian recommender (pyAgrum) | stubbed |
-| WP4 | Behaviour layer (speech + gestures) | stubbed |
+| WP4 | Behaviour layer (speech + gestures) | ✅ initial (`src/behaviour/`) |
 | WP5 | Integration, robustness, demo | pending |
+
+> WP2 runs as its own Python 3.11 uv project under [dialogue/](dialogue/) (LangGraph
+> needs ≥3.9). See [dialogue/README.md](dialogue/README.md) and
+> [dialogue/RUNNING.md](dialogue/RUNNING.md) for running it and viewing LangSmith traces.
 
 ## Setup
 

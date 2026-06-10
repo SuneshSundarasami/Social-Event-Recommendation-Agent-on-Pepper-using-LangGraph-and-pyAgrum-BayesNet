@@ -289,10 +289,35 @@ Goal: a working prototype, not a full user study.
 
 ## 10. Status / next actions
 
-- [ ] Freeze `contracts.py` (Evidence/Result + label whitelists)
-- [ ] Scaffold `Project/src/` structure with stub interfaces per WP
+- [x] Freeze `contracts.py` (Evidence/Result + label whitelists)
+- [x] Scaffold `Project/src/` structure with stub interfaces per WP
+- [x] WP1: FSM skeleton + Haar perception (scripted/webcam/pepper/hybrid sources)
+- [x] WP4 (initial): real Pepper gestures + persistent TTS, coordinated with speech
+- [x] WP2: LangGraph dialogue manager (Groq) — see below
 - [ ] WP3: port HW_03 BN → 3-layer recommender + CPTs
-- [ ] WP4: wrap HW_02 behaviours into the WP4 API
-- [ ] WP2: LangGraph skeleton + scripted-LLM test harness
-- [ ] WP1: FSM skeleton with stubs
 - [ ] WP5: integrate + robustness + demo tuning
+- [ ] WP5: bridge the 3.8 robot FSM ↔ 3.11 dialogue service (subprocess/socket)
+
+### WP2 as built (`Project/dialogue/`, standalone Python 3.11 uv project)
+
+LLM = **Groq** (free Llama 3.3, OpenAI-compatible API; `GROQ_MODEL` overridable),
+not pgmpy/xAI. Conversational, missing-aware questions are LLM-generated each turn.
+
+Graph is a 6-node multi-agent flow (visible in LangGraph Studio):
+
+```
+Router -> QuestionFramer -> AnswerParser -> ConflictResolver -> Evaluator (-> Finish)
+   ^___________________________________________|  reframe / conflict loops back
+```
+
+- **QuestionFramer** generates a fresh, open question anchored to the target slot.
+- **AnswerParser** maps the reply to evidence (one answer may fill several slots);
+  drops greeting/vague/catch-all guesses.
+- **ConflictResolver** re-opens a slot and asks an either/or question when a new
+  answer contradicts a decided one.
+- **Evaluator** commits usable answers, reframes unusable ones (offering concrete
+  options), and applies a default after N attempts.
+
+Inputs: typed / speech (ASR) / scripted. Offline `ScriptedParser` + tests (3 pass).
+Observability: **LangSmith tracing** (`LANGSMITH_*` in `src/.env`) and **LangGraph
+Studio** (`uv run langgraph dev`). See [dialogue/RUNNING.md](dialogue/RUNNING.md).
