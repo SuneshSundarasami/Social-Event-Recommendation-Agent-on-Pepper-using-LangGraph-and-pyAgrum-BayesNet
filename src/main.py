@@ -136,7 +136,15 @@ def main(argv=None) -> int:
     perception, behaviour, cleanup = build_components(args)
 
     dialogue = StubDialogueManager(interactive=args.interactive)
-    recommender = StubRecommender()
+    # WP3: use the real Bayesian recommender; fall back to the stub if pyAgrum
+    # or the network is unavailable.
+    try:
+        from recommender.bayesian_network import BayesianRecommender
+
+        recommender = BayesianRecommender()
+    except Exception as exc:
+        logging.warning("Bayesian recommender unavailable (%s); using stub.", exc)
+        recommender = StubRecommender()
 
     # Scripted mode is a quick self-contained demo: fast polling, short ack wait.
     if args.source == "scripted":

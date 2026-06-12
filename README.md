@@ -14,7 +14,7 @@ contracts, and design notes.
 |----|-----------|-------|
 | WP1 | Perception + interaction FSM | ✅ implemented (`src/`) |
 | WP2 | Dialogue manager (LangGraph + Groq) | ✅ implemented (`dialogue/`) |
-| WP3 | Bayesian recommender (pyAgrum) | stubbed |
+| WP3 | Bayesian recommender (pyAgrum) | ✅ implemented (`src/recommender/`) |
 | WP4 | Behaviour layer (speech + gestures) | ✅ initial (`src/behaviour/`) |
 | WP5 | Integration, robustness, demo | pending |
 

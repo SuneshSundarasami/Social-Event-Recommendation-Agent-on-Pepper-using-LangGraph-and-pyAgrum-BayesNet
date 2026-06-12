@@ -294,7 +294,7 @@ Goal: a working prototype, not a full user study.
 - [x] WP1: FSM skeleton + Haar perception (scripted/webcam/pepper/hybrid sources)
 - [x] WP4 (initial): real Pepper gestures + persistent TTS, coordinated with speech
 - [x] WP2: LangGraph dialogue manager (Groq) — see below
-- [ ] WP3: port HW_03 BN → 3-layer recommender + CPTs
+- [x] WP3: 3-layer pyAgrum recommender + CPTs (`src/recommender/`, wired into main.py)
 - [ ] WP5: integrate + robustness + demo tuning
 - [ ] WP5: bridge the 3.8 robot FSM ↔ 3.11 dialogue service (subprocess/socket)
 

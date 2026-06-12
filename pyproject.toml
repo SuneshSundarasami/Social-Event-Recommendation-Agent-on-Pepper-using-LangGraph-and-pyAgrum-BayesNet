@@ -19,6 +19,15 @@ dependencies = [
     "threadpool>=1.3.2",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
 [tool.uv]
 # Standalone project — not a member of the parent HCICR workspace.
 package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
