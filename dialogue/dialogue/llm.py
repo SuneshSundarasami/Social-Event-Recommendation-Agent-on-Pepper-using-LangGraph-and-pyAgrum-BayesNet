@@ -120,23 +120,25 @@ class GroqQuestionFramer:
         target_hint = SLOT_HINTS.get(target, target)
         others = [m for m in missing if m != target]
         system = (
-            "You are Pepper, a warm, friendly social robot helping someone pick a "
-            "social event. Ask ONE short question (max ~20 words). Focus on the "
-            "TARGET item below; you may gently fold in one other unknown if it flows "
-            "naturally. Be conversational, vary your phrasing, never sound like a "
-            "form, and never ask about things already known. Ask an OPEN question "
-            "that invites them to choose — avoid yes/no questions that assume an "
-            "answer (e.g. not 'Do you like live music?'). Return only the question."
+            "You are Pepper, a warm, friendly social robot helping someone choose a "
+            "social event. Ask ONE short, open, natural question (max ~20 words) to "
+            "learn the TARGET below. Make it experiential and conversational — weave "
+            "in what you already know as context — so the person answers freely and "
+            "you can INFER the value from what they say. Do NOT read out the allowed "
+            "options or ask a rigid 'this or that' question, and avoid yes/no "
+            "questions. Vary your phrasing; never ask about things already known. "
+            "Return only the question.\n"
+            "Example of the right style: 'What sounds most fun to you on a low-key "
+            "evening out?'"
         )
         user = "Already known: %s.\nTARGET to learn now: %s — %s.\n" % (
             known, target, target_hint)
         if others:
             user += "Other still-unknown (optional): %s.\n" % ", ".join(others)
         if feedback:
-            # The Evaluator decided the last answer was unusable; reframe clearly.
-            opts = ", ".join(EVIDENCE_LABELS[target])
-            user += ("%s This time, ask a simpler, clearer question and gently offer "
-                     "the concrete choices: %s.\n" % (feedback, opts))
+            # Reframe / conflict note from the Evaluator or ConflictResolver. The
+            # note itself says how to ask (open rephrase, or either/or for a clash).
+            user += "%s\n" % feedback
         user += "Ask your next question."
         try:
             resp = self.client.chat.completions.create(

@@ -166,9 +166,10 @@ def build_graph(parser, input_provider, framer=None,
 
         update["attempts"] = attempts
         update["feedback"] = (
-            'The user was asked about %s but answered "%s", which does not clearly '
-            'indicate a valid %s. They likely misunderstood — ask a clearer, more '
-            'concrete question for %s.' % (target, state["last_user_text"], target, target)
+            'The previous answer "%s" did not make their %s clear. Ask about %s again '
+            'a different, open and natural way — do NOT list the options; you may give '
+            'one concrete everyday example to nudge them.'
+            % (state["last_user_text"], target, target)
         )
         return update
 
