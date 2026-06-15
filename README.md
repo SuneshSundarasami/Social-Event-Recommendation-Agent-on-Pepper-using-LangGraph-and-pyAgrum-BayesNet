@@ -16,7 +16,7 @@ contracts, and design notes.
 | WP2 | Dialogue manager (LangGraph + Groq) | ✅ implemented (`dialogue/`) |
 | WP3 | Bayesian recommender (pyAgrum) | ✅ implemented (`src/recommender/`) |
 | WP4 | Behaviour layer (speech + gestures) | ✅ initial (`src/behaviour/`) |
-| WP5 | Integration, robustness, demo | pending |
+| WP5 | Integration (3.8↔3.11 dialogue bridge) | ✅ working (`src/dialogue_bridge.py`); demo tuning ongoing |
 
 > WP2 runs as its own Python 3.11 uv project under [dialogue/](dialogue/) (LangGraph
 > needs ≥3.9). See [dialogue/README.md](dialogue/README.md) and
@@ -43,7 +43,15 @@ uv run python src/main.py --source webcam --interactive
 
 # Pepper's simulated top camera in qiBullet:
 uv run python src/main.py --source pepper
+
+# Full pipeline with the real WP2 LangGraph dialogue (Pepper speaks each
+# question, you type the answer) -> Bayesian recommendation:
+uv run python src/main.py --source scripted --dialogue real
 ```
+
+> `--dialogue real` spawns the WP2 dialogue service (Python 3.11 venv under
+> [dialogue/](dialogue/)) as a subprocess and talks to it over JSON stdio. Run
+> `uv sync` in `dialogue/` first.
 
 ## Layout
 

@@ -295,8 +295,26 @@ Goal: a working prototype, not a full user study.
 - [x] WP4 (initial): real Pepper gestures + persistent TTS, coordinated with speech
 - [x] WP2: LangGraph dialogue manager (Groq) — see below
 - [x] WP3: 3-layer pyAgrum recommender + CPTs (`src/recommender/`, wired into main.py)
-- [ ] WP5: integrate + robustness + demo tuning
-- [ ] WP5: bridge the 3.8 robot FSM ↔ 3.11 dialogue service (subprocess/socket)
+- [x] WP5: bridge the 3.8 robot FSM ↔ 3.11 dialogue service (JSON-over-stdio subprocess)
+- [ ] WP5: demo tuning + evaluation-check pass on real hardware/sim
+
+### WP5 integration (`src/dialogue_bridge.py` ↔ `dialogue/dialogue/bridge.py`)
+
+The robot side (3.8) and dialogue (3.11) can't share an interpreter, so they run
+as two processes connected by the bridge:
+
+```
+robot FSM (3.8)  --collect-->  dialogue service (3.11, LangGraph + Groq)
+   ^  speaks question (WP4)  <--ask--          |
+   |  sends typed/ASR answer  --answer-->       |
+   '------ Evidence  <--evidence--  collect_evidence() finishes
+```
+
+`DialogueBridge` implements the `DialogueManager` contract on the robot side by
+spawning the dialogue venv's `dialogue.bridge` and exchanging newline-delimited
+JSON. For each `ask`, Pepper voices the question and the user answers; failures
+fall back to empty evidence so the BN still runs. Enable with
+`--dialogue real` (see [README](README.md)).
 
 ### WP2 as built (`Project/dialogue/`, standalone Python 3.11 uv project)
 

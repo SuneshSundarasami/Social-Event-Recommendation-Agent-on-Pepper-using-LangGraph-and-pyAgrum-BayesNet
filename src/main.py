@@ -117,6 +117,13 @@ def parse_args(argv=None):
         help="Ask preference questions on the console instead of using defaults.",
     )
     parser.add_argument(
+        "--dialogue",
+        choices=["stub", "real"],
+        default="stub",
+        help="Dialogue source: stub (WP2 stand-in) or real (WP2 LangGraph service "
+             "via the bridge; Pepper speaks each question, you type the answer).",
+    )
+    parser.add_argument(
         "--max-cycles",
         type=int,
         default=None,
@@ -124,6 +131,40 @@ def parse_args(argv=None):
     )
     parser.add_argument("--verbose", action="store_true", help="Debug logging.")
     return parser.parse_args(argv)
+
+
+def _build_real_dialogue(behaviour, base_cleanup, args):
+    """Wire the WP2 LangGraph dialogue service in via the bridge (WP5).
+
+    Returns (dialogue, cleanup). Falls back to the console stub if the service
+    can't be started.
+    """
+    dialogue_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dialogue")
+
+    def ask_user(question):
+        behaviour.say(question)            # Pepper voices the question (WP4)
+        print("  [Pepper asks] %s" % question)
+        try:
+            return input("  [you] ").strip()
+        except EOFError:
+            return ""
+
+    try:
+        from dialogue_bridge import DialogueBridge
+
+        bridge = DialogueBridge(ask_user, dialogue_dir, notify=behaviour.say)
+
+        def cleanup():
+            try:
+                bridge.close()
+            finally:
+                base_cleanup()
+
+        return bridge, cleanup
+    except Exception as exc:
+        logging.warning("Dialogue bridge unavailable (%s); using stub.", exc)
+        return StubDialogueManager(interactive=args.interactive), base_cleanup
 
 
 def main(argv=None) -> int:
@@ -135,7 +176,12 @@ def main(argv=None) -> int:
 
     perception, behaviour, cleanup = build_components(args)
 
+    # WP2/WP5: the dialogue. "real" spawns the LangGraph service via the bridge;
+    # Pepper speaks each question and the user types the answer.
     dialogue = StubDialogueManager(interactive=args.interactive)
+    if args.dialogue == "real":
+        dialogue, cleanup = _build_real_dialogue(behaviour, cleanup, args)
+
     # WP3: use the real Bayesian recommender; fall back to the stub if pyAgrum
     # or the network is unavailable.
     try:
