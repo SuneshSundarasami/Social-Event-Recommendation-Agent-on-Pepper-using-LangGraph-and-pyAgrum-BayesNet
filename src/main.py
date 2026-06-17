@@ -121,7 +121,14 @@ def parse_args(argv=None):
         choices=["stub", "real"],
         default="stub",
         help="Dialogue source: stub (WP2 stand-in) or real (WP2 LangGraph service "
-             "via the bridge; Pepper speaks each question, you type the answer).",
+             "via the bridge; Pepper speaks each question).",
+    )
+    parser.add_argument(
+        "--answer",
+        choices=["text", "speech"],
+        default="text",
+        help="With --dialogue real: how the user answers — typed, or spoken "
+             "(local Whisper ASR in the dialogue service).",
     )
     parser.add_argument(
         "--max-cycles",
@@ -142,18 +149,27 @@ def _build_real_dialogue(behaviour, base_cleanup, args):
     dialogue_dir = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dialogue")
 
-    def ask_user(question):
-        behaviour.say(question)            # Pepper voices the question (WP4)
+    def speak(question):
         print("  [Pepper asks] %s" % question)
+        behaviour.say(question)            # Pepper voices the question (WP4)
+
+    def get_text():
         try:
             return input("  [you] ").strip()
         except EOFError:
             return ""
 
+    def on_heard(text):
+        print("  [you said] %s" % text)
+
     try:
         from dialogue_bridge import DialogueBridge
 
-        bridge = DialogueBridge(ask_user, dialogue_dir, notify=behaviour.say)
+        bridge = DialogueBridge(
+            speak, dialogue_dir,
+            answer_mode=args.answer, get_text=get_text,
+            notify=behaviour.say, on_heard=on_heard,
+        )
 
         def cleanup():
             try:

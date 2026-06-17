@@ -1,89 +1,184 @@
-"""Persistent text-to-speech worker (WP4).
+"""Text-to-speech worker (WP4) with a neural voice and a robust fallback.
 
-Keeps a single pyttsx3 engine alive on a dedicated thread and speaks queued
-utterances using the startLoop(False)/iterate() pattern. This avoids two
-problems with the naive approach:
+Speech is queued and spoken on a dedicated thread so it can run alongside
+gestures. Backends, in order of preference (override with TTS_BACKEND):
 
-  * re-initialising the engine per utterance (adds ~100-300 ms latency before
-    every line, which desyncs speech from gestures), and
-  * reusing one engine with repeated runAndWait() calls, which raises
-    "run loop already started" so only the first line is ever spoken.
+  * edge  — Microsoft Edge neural voices (natural prosody; needs internet +
+            `edge-tts` and `playsound`). Voice via TTS_VOICE
+            (default en-US-AriaNeural).
+  * pyttsx3 — offline SAPI5/espeak fallback (more monotone, always available).
 
-``speak()`` blocks by default until the utterance finishes (via the
-'finished-utterance' callback), so callers can coordinate gestures with speech.
+If the neural backend errors at runtime (e.g. offline), the worker falls back to
+pyttsx3 for that line, so speech never silently breaks.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import queue
 import threading
-import time
 
 log = logging.getLogger("wp4.tts")
 
-try:
-    import pyttsx3  # type: ignore
-except Exception:  # pragma: no cover - environment dependent
-    pyttsx3 = None  # type: ignore
 
+# ---------------------------------------------------------------------------
+# Audio playback (for file-based backends)
+# ---------------------------------------------------------------------------
+
+def _play_audio(path: str) -> None:
+    try:
+        from playsound import playsound
+        playsound(path, True)
+        return
+    except Exception as exc:
+        if path.lower().endswith(".wav"):
+            try:
+                import winsound
+                winsound.PlaySound(path, winsound.SND_FILENAME)
+                return
+            except Exception:
+                pass
+        raise exc
+
+
+# ---------------------------------------------------------------------------
+# Backends
+# ---------------------------------------------------------------------------
+
+class _EdgeBackend:
+    name = "edge-tts"
+
+    def __init__(self, voice: str) -> None:
+        self.voice = voice
+
+    @classmethod
+    def try_create(cls):
+        try:
+            import edge_tts  # noqa: F401
+        except Exception:
+            return None
+        try:
+            import playsound  # noqa: F401  (mp3 playback)
+        except Exception:
+            log.warning("edge-tts present but 'playsound' missing; cannot play audio.")
+            return None
+        return cls(os.getenv("TTS_VOICE", "en-US-AriaNeural"))
+
+    def speak(self, text: str) -> None:
+        import asyncio
+        import tempfile
+
+        import edge_tts
+
+        tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+        tmp.close()
+        try:
+            async def _synth():
+                await edge_tts.Communicate(text, self.voice).save(tmp.name)
+
+            asyncio.run(_synth())
+            _play_audio(tmp.name)
+        finally:
+            try:
+                os.remove(tmp.name)
+            except Exception:
+                pass
+
+    def close(self) -> None:
+        pass
+
+
+class _Pyttsx3Backend:
+    name = "pyttsx3"
+
+    @classmethod
+    def try_create(cls):
+        try:
+            import pyttsx3  # noqa: F401
+        except Exception:
+            return None
+        return cls()
+
+    def speak(self, text: str) -> None:
+        # Fresh engine per utterance: reliable across repeated calls (avoids the
+        # "run loop already started" issue when reusing one engine).
+        import pyttsx3
+
+        engine = pyttsx3.init()
+        try:
+            engine.say(text)
+            engine.runAndWait()
+        finally:
+            try:
+                engine.stop()
+            except Exception:
+                pass
+
+    def close(self) -> None:
+        pass
+
+
+def _select_backend():
+    pref = os.getenv("TTS_BACKEND", "auto").lower()
+    if pref == "none":
+        return None, None
+    primary = None
+    if pref in ("auto", "edge"):
+        primary = _EdgeBackend.try_create()
+    if primary is None and pref in ("auto", "pyttsx3"):
+        primary = _Pyttsx3Backend.try_create()
+    # A pyttsx3 fallback used if the neural backend errors at runtime.
+    fallback = None
+    if primary is not None and primary.name != "pyttsx3":
+        fallback = _Pyttsx3Backend.try_create()
+    return primary, fallback
+
+
+# ---------------------------------------------------------------------------
+# Worker
+# ---------------------------------------------------------------------------
 
 class TtsEngine:
     def __init__(self) -> None:
-        self.available = pyttsx3 is not None
+        self._backend, self._fallback = _select_backend()
+        self.available = self._backend is not None
+        if self.available:
+            log.info("TTS backend: %s", self._backend.name)
+        else:
+            log.warning("No TTS backend available; speech disabled.")
         self._queue = queue.Queue()
         self._stop = threading.Event()
-        self._done = None  # completion event for the utterance in progress
         self._thread = None
         if self.available:
             self._thread = threading.Thread(target=self._run, name="tts", daemon=True)
             self._thread.start()
 
-    def _on_finished(self, name, completed) -> None:
-        d = self._done
-        if d is not None:
-            d.set()
-
     def _run(self) -> None:
-        try:
-            engine = pyttsx3.init()
-        except Exception as exc:  # pragma: no cover
-            log.warning("TTS init failed (%s); speech disabled.", exc)
-            self.available = False
-            self._drain()
-            return
-
-        engine.connect("finished-utterance", self._on_finished)
-        engine.startLoop(False)
-        try:
-            while not self._stop.is_set():
-                try:
-                    text, done = self._queue.get(timeout=0.05)
-                except queue.Empty:
-                    engine.iterate()  # keep the loop alive
-                    continue
-                self._done = done
-                engine.say(text)
-                while not done.is_set() and not self._stop.is_set():
-                    engine.iterate()
-                    time.sleep(0.005)
-                self._done = None
-        finally:
-            try:
-                engine.endLoop()
-            except Exception:
-                pass
-
-    def _drain(self) -> None:
-        # If TTS is unavailable, release any blocked callers so they don't hang.
         while not self._stop.is_set():
             try:
-                _text, done = self._queue.get(timeout=0.1)
+                text, done = self._queue.get(timeout=0.1)
             except queue.Empty:
                 continue
-            done.set()
+            try:
+                self._backend.speak(text)
+            except Exception as exc:
+                log.warning("TTS (%s) failed (%s).", self._backend.name, exc)
+                if self._fallback is not None:
+                    try:
+                        self._fallback.speak(text)
+                    except Exception as exc2:  # pragma: no cover
+                        log.warning("TTS fallback failed (%s).", exc2)
+            finally:
+                done.set()
+        for backend in (self._backend, self._fallback):
+            if backend is not None:
+                try:
+                    backend.close()
+                except Exception:
+                    pass
 
-    def speak(self, text: str, block: bool = True, timeout: float = 20.0) -> None:
+    def speak(self, text: str, block: bool = True, timeout: float = 30.0) -> None:
         if not self.available:
             return
         done = threading.Event()

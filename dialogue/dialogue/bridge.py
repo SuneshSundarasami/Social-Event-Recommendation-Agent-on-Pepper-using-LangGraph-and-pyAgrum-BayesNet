@@ -56,7 +56,12 @@ def _read():
 
 
 class RemoteInput:
-    """Input provider that asks the robot (over stdio) instead of the console."""
+    """Input provider that asks the robot (over stdio) instead of the console.
+
+    The robot replies either with typed text ({"answer": ...}) or, in speech
+    mode, with {"spoken": true} once Pepper has finished voicing the question —
+    in which case we record the mic and transcribe it locally with Whisper.
+    """
 
     def ask(self, question: str) -> str:
         _emit({"event": "ask", "question": question})
@@ -66,6 +71,15 @@ class RemoteInput:
                 raise EOFError("robot closed the connection")
             if "answer" in msg:
                 return msg["answer"] or ""
+            if msg.get("spoken"):
+                return self._listen()
+
+    def _listen(self) -> str:
+        from dialogue.asr import listen_and_transcribe
+        _emit({"event": "notify", "message": "(listening...)"})
+        text = listen_and_transcribe()
+        _emit({"event": "heard", "text": text})
+        return text
 
     def notify(self, message: str) -> None:
         _emit({"event": "notify", "message": message})

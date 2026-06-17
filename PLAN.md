@@ -316,6 +316,12 @@ JSON. For each `ask`, Pepper voices the question and the user answers; failures
 fall back to empty evidence so the BN still runs. Enable with
 `--dialogue real` (see [README](README.md)).
 
+**Voice (`--answer speech`).** Output uses neural TTS (`edge-tts`, with a pyttsx3
+fallback) on the robot side. Input uses **local Whisper** (`faster-whisper`,
+GPU-accelerated) in the dialogue service: on `ask`, Pepper speaks, the robot
+signals `spoken`, and the service records the mic + transcribes on-device. No
+speech audio leaves the machine; only the LLM text calls go to Groq.
+
 ### WP2 as built (`Project/dialogue/`, standalone Python 3.11 uv project)
 
 LLM = **Groq** (free Llama 3.3, OpenAI-compatible API; `GROQ_MODEL` overridable),

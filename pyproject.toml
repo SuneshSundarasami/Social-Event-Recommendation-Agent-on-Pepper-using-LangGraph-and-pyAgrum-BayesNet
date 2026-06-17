@@ -15,7 +15,9 @@ dependencies = [
     # WP3 — Bayesian recommender
     "pyagrum>=1.13.2",
     # WP4 — behaviour layer (speech + threaded gesture coordination)
-    "pyttsx3>=2.99",
+    "pyttsx3>=2.99",          # offline TTS fallback
+    "edge-tts>=6.1",          # neural TTS voice (natural prosody)
+    "playsound==1.2.2",       # audio playback for neural TTS
     "threadpool>=1.3.2",
 ]
 

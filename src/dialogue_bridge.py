@@ -26,10 +26,17 @@ log = logging.getLogger("wp5.bridge")
 
 
 class DialogueBridge:
-    def __init__(self, ask_user: Callable[[str], str], dialogue_dir: str,
-                 notify: Optional[Callable[[str], None]] = None) -> None:
-        self.ask_user = ask_user
+    def __init__(self, speak: Callable[[str], None], dialogue_dir: str,
+                 answer_mode: str = "text", get_text: Optional[Callable[[], str]] = None,
+                 notify: Optional[Callable[[str], None]] = None,
+                 on_heard: Optional[Callable[[str], None]] = None) -> None:
+        # speak: voice a question (Pepper). answer_mode: "text" -> get_text() supplies
+        # the typed reply; "speech" -> the service records the mic + Whisper transcribes.
+        self.speak = speak
+        self.answer_mode = answer_mode
+        self.get_text = get_text
         self.notify = notify
+        self.on_heard = on_heard
         self.dialogue_dir = dialogue_dir
         self.proc = self._spawn(dialogue_dir)
         self._drain_stderr()
@@ -101,8 +108,16 @@ class DialogueBridge:
                 msg = self._recv()
                 event = msg.get("event")
                 if event == "ask":
-                    answer = self.ask_user(msg.get("question", ""))
-                    self._send({"answer": answer or ""})
+                    self.speak(msg.get("question", ""))   # Pepper voices the question
+                    if self.answer_mode == "speech":
+                        # Service records the mic + transcribes locally with Whisper.
+                        self._send({"spoken": True})
+                    else:
+                        answer = self.get_text() if self.get_text else ""
+                        self._send({"answer": answer or ""})
+                elif event == "heard":
+                    if self.on_heard:
+                        self.on_heard(msg.get("text", ""))
                 elif event == "notify":
                     if self.notify:
                         self.notify(msg.get("message", ""))

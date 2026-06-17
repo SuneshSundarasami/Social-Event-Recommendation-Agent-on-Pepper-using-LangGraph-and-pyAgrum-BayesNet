@@ -47,11 +47,28 @@ uv run python src/main.py --source pepper
 # Full pipeline with the real WP2 LangGraph dialogue (Pepper speaks each
 # question, you type the answer) -> Bayesian recommendation:
 uv run python src/main.py --source scripted --dialogue real
+
+# Fully spoken: Pepper asks out loud (neural TTS), you answer out loud
+# (local Whisper ASR), Pepper in the qiBullet GUI:
+uv run python src/main.py --source hybrid --dialogue real --answer speech
 ```
 
 > `--dialogue real` spawns the WP2 dialogue service (Python 3.11 venv under
 > [dialogue/](dialogue/)) as a subprocess and talks to it over JSON stdio. Run
-> `uv sync` in `dialogue/` first.
+> `uv sync` (robot) and `uv sync --extra speech` (in `dialogue/`, for `--answer
+> speech`) first.
+
+### Voice config (env)
+
+| Variable | Default | Notes |
+|---|---|---|
+| `TTS_BACKEND` | `auto` | `edge` (neural), `pyttsx3` (offline), or `none` |
+| `TTS_VOICE` | `en-US-AriaNeural` | any Edge neural voice |
+| `WHISPER_MODEL` | `small` | `tiny`/`base`/`small`/`medium`/`large-v3` (6 GB VRAM fits up to ~medium) |
+| `WHISPER_DEVICE` | `auto` | `cuda` / `cpu` (auto-detects GPU) |
+
+Neural TTS (`edge-tts`) is online; local Whisper ASR runs on-device (GPU if
+available). To go fully offline, set `TTS_BACKEND=pyttsx3`.
 
 ## Layout
 
