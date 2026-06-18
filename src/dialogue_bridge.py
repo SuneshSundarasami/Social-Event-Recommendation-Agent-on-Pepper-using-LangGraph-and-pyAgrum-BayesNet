@@ -115,6 +115,8 @@ class DialogueBridge:
                     else:
                         answer = self.get_text() if self.get_text else ""
                         self._send({"answer": answer or ""})
+                elif event == "listening":
+                    print("  [Pepper is listening... speak now]")
                 elif event == "heard":
                     if self.on_heard:
                         self.on_heard(msg.get("text", ""))

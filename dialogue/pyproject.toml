@@ -18,7 +18,11 @@ dependencies = [
 speech = [
     "SpeechRecognition>=3.10",
     "pyaudio>=0.2.13",
-    "faster-whisper>=1.0",   # local (on-device) speech-to-text
+    "faster-whisper>=1.0",          # local (on-device) speech-to-text
+    # CUDA 12 runtime for GPU Whisper (CTranslate2 4.8 needs cuBLAS 12 + cuDNN 9).
+    # Harmless on CPU-only machines; the ASR registers these DLL dirs at import.
+    "nvidia-cublas-cu12>=12.1",
+    "nvidia-cudnn-cu12>=9.1,<10",
 ]
 
 [dependency-groups]

@@ -76,7 +76,7 @@ class RemoteInput:
 
     def _listen(self) -> str:
         from dialogue.asr import listen_and_transcribe
-        _emit({"event": "notify", "message": "(listening...)"})
+        _emit({"event": "listening"})   # robot prints a cue (not spoken)
         text = listen_and_transcribe()
         _emit({"event": "heard", "text": text})
         return text
