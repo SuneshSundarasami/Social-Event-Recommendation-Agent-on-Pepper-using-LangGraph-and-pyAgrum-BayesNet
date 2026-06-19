@@ -70,13 +70,40 @@ uv run python src/main.py --source hybrid --dialogue real --answer speech
 Neural TTS (`edge-tts`) is online; local Whisper ASR runs on-device (GPU if
 available). To go fully offline, set `TTS_BACKEND=pyttsx3`.
 
+### Tablet event images
+
+When Pepper presents a recommendation in qiBullet, the behaviour layer maps the
+top-ranked event to an image in [imgs/](imgs/) and displays it on a visual panel
+aligned with Pepper's tablet. The panel is cleared at the end of each interaction
+cycle, so the next user starts from an empty tablet.
+
+The event image mapping lives in `src/behaviour/event_display.py`. Current assets:
+
+| Event | Image |
+|---|---|
+| Museum | `imgs/mueseum.jpg` |
+| Concert | `imgs/concert.jpg` |
+| Sports | `imgs/sports.jpg` |
+| Food | `imgs/food.avif` |
+| Outdoor | `imgs/outdoor.jpg` |
+| Nightlife | `imgs/nightlife.jpg` |
+| Workshop | `imgs/workshop.avif` |
+| Networking | `imgs/networking.jpg` |
+
+PyBullet loads JPG/PNG textures reliably. If an AVIF decoder is unavailable in
+the local Python image stack, those images fall back to the OpenCV preview window;
+converting `food.avif` and `workshop.avif` to JPG or PNG gives the most reliable
+tablet display.
+
 ## Layout
 
 ```
+imgs/              # event images shown on Pepper's tablet
 src/
   contracts.py      # shared Evidence/Result types + cross-package interfaces
   state_machine.py  # six-state interaction FSM (WP1)
   perception/       # face detection + camera sources (WP1)
+  behaviour/        # Pepper speech, gestures, TTS, and tablet image display
   stubs.py          # console stand-ins for WP2/WP3/WP4
   main.py           # orchestrator / entry point
 ```

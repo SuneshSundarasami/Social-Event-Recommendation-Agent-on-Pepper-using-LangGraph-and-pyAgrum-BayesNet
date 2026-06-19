@@ -40,6 +40,9 @@ class ConsoleBehaviour:
         print("  [Pepper] (gesture) %s" % name)
         print("  [Pepper] (says)    %s" % text)
 
+    def clear_display(self) -> None:
+        pass
+
     def present(self, result: Result) -> None:
         print("  [Pepper] (presents top events):")
         for i, item in enumerate(result[:3], start=1):

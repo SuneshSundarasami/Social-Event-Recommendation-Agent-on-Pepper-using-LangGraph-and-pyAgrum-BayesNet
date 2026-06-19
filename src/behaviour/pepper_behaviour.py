@@ -14,6 +14,7 @@ import logging
 import threading
 import time
 
+from behaviour.event_display import EventImageDisplay
 from behaviour.tts import TtsEngine
 
 log = logging.getLogger("wp4.behaviour")
@@ -24,14 +25,19 @@ class PepperBehaviour:
         self.pepper = pepper
         self._gesture_thread = None  # most recent gesture, runs concurrently with speech
         self._tts = TtsEngine() if speak_aloud else None
+        self._display = EventImageDisplay(pepper)
 
     # -- speech -------------------------------------------------------------
 
     def shutdown(self) -> None:
         """Stop speech worker and wait for any in-flight gesture (before sim stop)."""
         self.wait_for_gesture()
+        self._display.close()
         if self._tts is not None:
             self._tts.shutdown()
+
+    def clear_display(self) -> None:
+        self._display.clear()
 
     def say(self, text: str) -> None:
         print("  [Pepper] (says)    %s" % text)
@@ -172,6 +178,11 @@ class PepperBehaviour:
 
     def present(self, result) -> None:
         print("  [Pepper] (presents top events):")
+        if result:
+            top_event = str(result[0].get("event", ""))
+            image_path = self._display.show_event(top_event)
+            if image_path:
+                print("  [Pepper] (tablet)  %s" % image_path)
         for i, item in enumerate(result[:3], start=1):
             event = item.get("event", "?")
             prob = item.get("prob", 0.0)

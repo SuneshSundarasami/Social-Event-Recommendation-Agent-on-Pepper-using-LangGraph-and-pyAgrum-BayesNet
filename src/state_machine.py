@@ -113,6 +113,12 @@ class InteractionFSM:
         return self.perception.is_present()
 
     def _reset_interaction(self) -> None:
+        clear_display = getattr(self.behaviour, "clear_display", None)
+        if clear_display is not None:
+            try:
+                clear_display()
+            except Exception:
+                log.debug("Behaviour display reset failed.", exc_info=True)
         self.evidence = {}
         self.result = []
         self.perception.reset()
