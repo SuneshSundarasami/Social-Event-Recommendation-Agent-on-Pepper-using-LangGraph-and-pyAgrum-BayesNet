@@ -15,6 +15,13 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Protocol, Tuple, runtime_checkable
 
 # ---------------------------------------------------------------------------
+# Agent identity
+# ---------------------------------------------------------------------------
+
+AGENT_NAME = "JARVIS"
+AGENT_SLOGAN = "At your service. Scanning the local grid for maximum energy signatures."
+
+# ---------------------------------------------------------------------------
 # Evidence (the single currency passed between packages)
 # ---------------------------------------------------------------------------
 

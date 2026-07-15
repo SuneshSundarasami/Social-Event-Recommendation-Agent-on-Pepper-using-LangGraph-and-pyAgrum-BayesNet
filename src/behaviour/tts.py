@@ -49,8 +49,10 @@ def _play_audio(path: str) -> None:
 class _EdgeBackend:
     name = "edge-tts"
 
-    def __init__(self, voice: str) -> None:
+    def __init__(self, voice: str, rate: str = "+0%", pitch: str = "+0Hz") -> None:
         self.voice = voice
+        self.rate = rate
+        self.pitch = pitch
 
     @classmethod
     def try_create(cls):
@@ -63,7 +65,13 @@ class _EdgeBackend:
         except Exception:
             log.warning("edge-tts present but 'playsound' missing; cannot play audio.")
             return None
-        return cls(os.getenv("TTS_VOICE", "en-US-AriaNeural"))
+        # Default voice is a calm, precise British male voice, slowed and
+        # pitched down slightly for an "AI assistant" tone.
+        return cls(
+            os.getenv("TTS_VOICE", "en-GB-RyanNeural"),
+            os.getenv("TTS_RATE", "-8%"),
+            os.getenv("TTS_PITCH", "-5Hz"),
+        )
 
     def speak(self, text: str) -> None:
         import asyncio
@@ -75,7 +83,9 @@ class _EdgeBackend:
         tmp.close()
         try:
             async def _synth():
-                await edge_tts.Communicate(text, self.voice).save(tmp.name)
+                await edge_tts.Communicate(
+                    text, self.voice, rate=self.rate, pitch=self.pitch
+                ).save(tmp.name)
 
             asyncio.run(_synth())
             _play_audio(tmp.name)

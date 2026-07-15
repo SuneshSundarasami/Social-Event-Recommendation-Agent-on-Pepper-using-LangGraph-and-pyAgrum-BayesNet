@@ -15,7 +15,9 @@ def test_collects_all_slots_from_clear_answers():
         "during the day",
         "i love food",
     ]
-    mgr = DialogueManager(ScriptedParser(), ScriptedInput(answers))
+    # randomize_order=False: these tests hard-code answers against the fixed
+    # canonical slot order (production runs randomize which slot is asked next).
+    mgr = DialogueManager(ScriptedParser(), ScriptedInput(answers), randomize_order=False)
     ev = mgr.collect_evidence()
     assert ev == {
         "Budget": "Low",
@@ -35,7 +37,9 @@ def test_multi_slot_fill_from_one_answer():
         "daytime",
         "food",
     ]
-    mgr = DialogueManager(ScriptedParser(), ScriptedInput(answers))
+    # randomize_order=False: these tests hard-code answers against the fixed
+    # canonical slot order (production runs randomize which slot is asked next).
+    mgr = DialogueManager(ScriptedParser(), ScriptedInput(answers), randomize_order=False)
     ev = mgr.collect_evidence()
     assert ev["Budget"] == "Low"
     assert ev["Setting"] == "Outdoor"
@@ -49,7 +53,8 @@ def test_default_applied_after_failed_clarifications():
         "asdfgh", "qwerty", "zzzzz",          # Budget never parses -> default Med
         "solo", "active", "indoor", "night", "music",
     ]
-    mgr = DialogueManager(ScriptedParser(), ScriptedInput(answers), max_clarify=2)
+    mgr = DialogueManager(ScriptedParser(), ScriptedInput(answers), max_clarify=2,
+                         randomize_order=False)
     ev = mgr.collect_evidence()
     assert ev["Budget"] == "Med"            # default
     assert set(ev) == set(EVIDENCE_SLOTS)

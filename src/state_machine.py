@@ -22,6 +22,7 @@ import time
 from typing import Callable, List, Optional
 
 from contracts import (
+    AGENT_NAME,
     Behaviour,
     DialogueManager,
     Evidence,
@@ -54,6 +55,8 @@ class InteractionFSM:
         presence_check_frames: int = 3,
         ack_timeout: float = 15.0,
         name_provider: Optional[Callable[[], Optional[str]]] = None,
+        get_text: Optional[Callable[[], str]] = None,
+        enroll_samples: int = 15,
     ) -> None:
         self.perception = perception
         self.dialogue = dialogue
@@ -64,6 +67,10 @@ class InteractionFSM:
         self.presence_check_frames = presence_check_frames
         self.ack_timeout = ack_timeout
         self.name_provider = name_provider
+        # Optional requirement #2: asks a not-yet-authorized visitor's name and
+        # (with consent) enrolls their face. get_text supplies typed replies.
+        self.get_text = get_text or self._default_get_text
+        self.enroll_samples = enroll_samples
 
         self.state = State.IDLE
         self.evidence: Evidence = {}
@@ -112,6 +119,75 @@ class InteractionFSM:
             time.sleep(self.idle_poll)
         return self.perception.is_present()
 
+    @staticmethod
+    def _default_get_text() -> str:
+        try:
+            return input("  [you] ").strip()
+        except EOFError:
+            return ""
+
+    def _capture_enrollment_samples(self, recognizer, name: str) -> int:
+        """Grab a few live frames of the person currently in view and save
+        them as enrollment samples. Reuses the already-open camera feed
+        (``self.perception``) rather than opening a second one."""
+        saved = 0
+        attempts = 0
+        max_attempts = self.enroll_samples * 4
+        while saved < self.enroll_samples and attempts < max_attempts:
+            self.perception.tick()
+            attempts += 1
+            frame = getattr(self.perception, "last_frame", None)
+            faces = getattr(self.perception, "last_faces", None)
+            if frame is not None and faces is not None and len(faces):
+                box = max(faces, key=lambda b: b[2] * b[3])  # largest face
+                try:
+                    recognizer.enroll_sample(frame, box, name)
+                    saved += 1
+                except Exception:
+                    log.debug("Enrollment sample capture failed.", exc_info=True)
+            time.sleep(0.15)
+        return saved
+
+    def _identify_or_enroll(self) -> Optional[str]:
+        """Optional requirements #1/#2: verify the face; if unrecognized, ask
+        for a name and (with consent) enroll it for next time.
+
+        Returns the person's name if known, freshly enrolled, or given
+        without consent to save; None if nothing was learned (e.g. no camera
+        source is wired, or the visitor declines to give a name).
+        """
+        identify = getattr(self.perception, "identify", None)
+        if identify is not None:
+            identity = identify()
+            if identity:
+                return identity
+
+        recognizer = getattr(self.perception, "recognizer", None)
+        if recognizer is None:
+            return None  # no camera / no recognizer wired for this source
+
+        self.behaviour.say("I don't think we've met yet. What's your name?")
+        name = (self.get_text() or "").strip()
+        if not name:
+            return None
+
+        self.behaviour.say(
+            "Nice to meet you, %s. Would it be okay if I remember your "
+            "face for next time?" % name
+        )
+        consent = (self.get_text() or "").strip().lower()
+        if consent.startswith("y"):
+            saved = self._capture_enrollment_samples(recognizer, name)
+            if saved:
+                recognizer.retrain()
+                self.behaviour.say("Great, I'll remember you next time, %s!" % name)
+            else:
+                self.behaviour.say(
+                    "Hmm, I couldn't get a clear look — no worries, let's continue.")
+        else:
+            self.behaviour.say("No problem, %s." % name)
+        return name
+
     def _reset_interaction(self) -> None:
         clear_display = getattr(self.behaviour, "clear_display", None)
         if clear_display is not None:
@@ -130,25 +206,35 @@ class InteractionFSM:
         while self._running:
             self.perception.tick()
             if self.perception.face_stable():
-                log.info("Stable face detected -> Greeting")
+                # Optional requirement #1: verify the face against authorized
+                # users (logged here; _greeting() also uses it to personalize
+                # or to ask+enroll an unrecognized visitor).
+                identify = getattr(self.perception, "identify", None)
+                identity = identify() if identify is not None else None
+                if identity:
+                    log.info("Stable face detected -> Greeting (authorized user: %s)",
+                             identity)
+                else:
+                    log.info("Stable face detected -> Greeting (unrecognized visitor)")
                 return State.GREETING
             time.sleep(self.idle_poll)
         return State.IDLE
 
     def _greeting(self) -> State:
-        name = None
-        if self.name_provider is not None:
+        name = self._identify_or_enroll()
+        if name is None and self.name_provider is not None:
             try:
                 name = self.name_provider()
             except Exception:
                 name = None
-        hello = "Hello %s!" % name if name else "Hello there!"
+        hello = ("Greetings, %s. %s online, at your service." % (name, AGENT_NAME) if name
+                 else "Greetings. %s online, at your service." % AGENT_NAME)
         # Two coordinated beats: each line and its gesture start together and
         # the FSM waits for both to finish before the next.
         self.behaviour.say_with_gesture(hello, "wave")
-        self.behaviour.say_with_gesture("Nice to see you.", "nod")
+        self.behaviour.say_with_gesture("Systems nominal. It's good to see you.", "nod")
         self.behaviour.say_with_gesture(
-            "I can recommend a social event for you.", "open_arms")
+            "Scanning the local grid for a social event to suit you.", "open_arms")
 
         if not self._still_present():
             log.info("User left during greeting -> Idle")
@@ -195,7 +281,8 @@ class InteractionFSM:
 
     def _farewell(self) -> State:
         # Wave and speak the goodbye together, waiting for both to finish.
-        self.behaviour.say_with_gesture("Have a great time! Goodbye.", "wave")
+        self.behaviour.say_with_gesture(
+            "Enjoy your evening. %s signing off, goodbye." % AGENT_NAME, "wave")
         self._reset_interaction()
         return State.IDLE
 

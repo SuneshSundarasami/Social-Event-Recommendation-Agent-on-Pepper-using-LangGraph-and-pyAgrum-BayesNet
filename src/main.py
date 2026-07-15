@@ -24,6 +24,7 @@ import sys
 # Allow `python main.py` from anywhere by putting this dir (src/) on the path.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from contracts import AGENT_NAME, AGENT_SLOGAN  # noqa: E402
 from state_machine import InteractionFSM  # noqa: E402
 from stubs import ConsoleBehaviour, StubDialogueManager, StubRecommender  # noqa: E402
 
@@ -62,8 +63,12 @@ def build_components(args):
 
     if args.source == "webcam":
         from perception.face_detector import HaarFaceDetector, ThreadedPerception, WebcamSource
+        from perception.face_recognizer import FaceRecognizer
 
-        det = HaarFaceDetector(WebcamSource(args.camera_index))
+        # Optional requirement #1: verify the face against authorized users
+        # (group members enrolled via enroll_face.py). Fails soft — with
+        # nobody enrolled it's a no-op and every face is just unrecognized.
+        det = HaarFaceDetector(WebcamSource(args.camera_index), recognizer=FaceRecognizer())
         # Threaded preview so the window stays live during the (blocking) dialogue.
         perception = ThreadedPerception(det, preview=True) if args.preview else det
         return perception, ConsoleBehaviour(), perception.release
@@ -71,18 +76,20 @@ def build_components(args):
     if args.source in ("pepper", "hybrid"):
         from behaviour.pepper_behaviour import PepperBehaviour
         from perception.face_detector import HaarFaceDetector
+        from perception.face_recognizer import FaceRecognizer
 
         sim, client, pepper = _spawn_pepper(args)
         behaviour = PepperBehaviour(pepper)
+        recognizer = FaceRecognizer()
 
         if args.source == "pepper":
             from perception.face_detector import PepperCameraSource
 
-            perception = HaarFaceDetector(PepperCameraSource(pepper))
+            perception = HaarFaceDetector(PepperCameraSource(pepper), recognizer=recognizer)
         else:  # hybrid: Pepper's body in sim, face detection from the webcam
             from perception.face_detector import ThreadedPerception, WebcamSource
 
-            det = HaarFaceDetector(WebcamSource(args.camera_index))
+            det = HaarFaceDetector(WebcamSource(args.camera_index), recognizer=recognizer)
             perception = ThreadedPerception(det, preview=True)
 
         def cleanup():
@@ -151,7 +158,10 @@ def _build_real_dialogue(behaviour, base_cleanup, args):
 
     def speak(question):
         print("  [Pepper asks] %s" % question)
-        behaviour.say(question)            # Pepper voices the question (WP4)
+        # A brief single-beat gesture accompanies each question during the
+        # conversation (not the long open_arms swing, which drifts out of sync
+        # with these variable-length, LLM-generated questions).
+        behaviour.say_with_gesture(question, "talk")
 
     def get_text():
         try:
@@ -162,13 +172,17 @@ def _build_real_dialogue(behaviour, base_cleanup, args):
     def on_heard(text):
         print("  [you said] %s" % text)
 
+    def notify(message):
+        print("  [Pepper notifies] %s" % message)
+        behaviour.say_with_gesture(message, "nod")
+
     try:
         from dialogue_bridge import DialogueBridge
 
         bridge = DialogueBridge(
             speak, dialogue_dir,
             answer_mode=args.answer, get_text=get_text,
-            notify=behaviour.say, on_heard=on_heard,
+            notify=notify, on_heard=on_heard,
         )
 
         def cleanup():
@@ -219,7 +233,7 @@ def main(argv=None) -> int:
         fsm = InteractionFSM(perception, dialogue, recommender, behaviour)
         max_cycles = args.max_cycles
 
-    print("=== Social Event Recommendation Agent - WP1 (source=%s) ===" % args.source)
+    print("=== %s - %s (source=%s) ===" % (AGENT_NAME, AGENT_SLOGAN, args.source))
     try:
         fsm.run(max_cycles=max_cycles)
     finally:

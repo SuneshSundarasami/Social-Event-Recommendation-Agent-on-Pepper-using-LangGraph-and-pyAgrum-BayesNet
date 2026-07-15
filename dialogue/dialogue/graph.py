@@ -26,6 +26,7 @@ Flow:
 
 from __future__ import annotations
 
+import random
 from typing import Optional
 
 # On Python < 3.12 pydantic (used by the LangGraph API/Studio to derive schemas)
@@ -52,6 +53,16 @@ def _has_no_preference_cue(text: str) -> bool:
     return any(cue in low for cue in _NO_PREFERENCE_CUES)
 
 
+# Requirement #8: filter abusive language and decline politely instead of
+# engaging with it.
+_ABUSE_WORDS = ("idiot", "stupid", "moron", "shut up")
+
+
+def _is_abusive(text: str) -> bool:
+    low = text.lower()
+    return any(word in low for word in _ABUSE_WORDS)
+
+
 class DialogueState(TypedDict):
     evidence: dict          # the slots filled so far (the contract type)
     target: Optional[str]   # the slot currently being resolved
@@ -66,7 +77,8 @@ class DialogueState(TypedDict):
 
 
 def build_graph(parser, input_provider, framer=None,
-                slots: list[Slot] | None = None, max_attempts: int = 2):
+                slots: list[Slot] | None = None, max_attempts: int = 2,
+                randomize_order: bool = True):
     slots = slots or DEFAULT_SLOTS
     by_name = {s.name: s for s in slots}
     order = [s.name for s in slots]
@@ -79,7 +91,10 @@ def build_graph(parser, input_provider, framer=None,
         missing = missing_of(state["evidence"])
         if not missing:
             return {"done": True, "target": None}
-        return {"done": False, "target": missing[0], "attempts": 0, "feedback": None}
+        # Randomized so the conversation doesn't always open with the same
+        # slot (e.g. always Budget) in the same fixed order every time.
+        target = random.choice(missing) if randomize_order else missing[0]
+        return {"done": False, "target": target, "attempts": 0, "feedback": None}
 
     # -- QuestionFramer: ask about the target, reframing if asked to -----------
     def QuestionFramer(state: DialogueState) -> dict:
@@ -104,6 +119,9 @@ def build_graph(parser, input_provider, framer=None,
 
     # -- AnswerParser: reply -> cleaned candidate evidence ---------------------
     def AnswerParser(state: DialogueState) -> dict:
+        if _is_abusive(state["last_user_text"]):
+            input_provider.notify("Let's keep this friendly — could you rephrase that?")
+            return {"candidate": {}}
         candidate = whitelist(parser.parse(state["last_user_text"],
                                            focus_slot=state["target"],
                                            question=state["last_question"]))

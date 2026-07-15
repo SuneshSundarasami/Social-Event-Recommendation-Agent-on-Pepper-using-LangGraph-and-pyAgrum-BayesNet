@@ -5,9 +5,9 @@ SpeechRecognition's endpointing (stops on silence), then transcribes it with a
 local Whisper model via CTranslate2 — GPU if available, else CPU.
 
 Config via env:
-    WHISPER_MODEL    tiny | base | small | medium | large-v3   (default: small)
+    WHISPER_MODEL    tiny | base | small | medium | large-v3   (default: large-v3 on GPU, small on CPU)
     WHISPER_DEVICE   auto | cuda | cpu                          (default: auto)
-    WHISPER_COMPUTE  float16 | int8_float16 | int8 | ...        (default: by device)
+    WHISPER_COMPUTE  float16 | int8_float16 | int8 | ...        (default: int8_float16 on GPU, int8 on CPU)
 """
 
 from __future__ import annotations
@@ -59,12 +59,15 @@ _register_cuda_dlls()
 
 
 def _pick_device(device: str, compute: str):
+    # On the GPU we default to int8_float16: large-v3 then fits a 6 GB card with
+    # headroom to spare (≈2.2 GB vs ≈3.4 GB for float16) and runs faster, with
+    # negligible accuracy loss versus full float16.
     if device and device != "auto":
-        return device, (compute or ("float16" if device == "cuda" else "int8"))
+        return device, (compute or ("int8_float16" if device == "cuda" else "int8"))
     try:
         import ctranslate2
         if ctranslate2.get_cuda_device_count() > 0:
-            return "cuda", (compute or "float16")
+            return "cuda", (compute or "int8_float16")
     except Exception:
         pass
     return "cpu", (compute or "int8")
@@ -72,11 +75,14 @@ def _pick_device(device: str, compute: str):
 
 class WhisperTranscriber:
     def __init__(self, model_size=None, device=None, compute=None) -> None:
-        self.model_size = model_size or os.getenv("WHISPER_MODEL", "small")
         device, compute = _pick_device(
             device or os.getenv("WHISPER_DEVICE", "auto"),
             compute or os.getenv("WHISPER_COMPUTE", ""),
         )
+        # Default model is device-aware: a GPU comfortably runs large-v3 (best
+        # accuracy), whereas on CPU it would be far too slow, so CPU stays on small.
+        default_model = "large-v3" if device == "cuda" else "small"
+        self.model_size = model_size or os.getenv("WHISPER_MODEL", default_model)
         self._load(device, compute)
 
     def _load(self, device: str, compute: str) -> None:

@@ -1,4 +1,6 @@
-# Social Event Recommendation Agent on Pepper
+# JARVIS — Social Event Recommendation Agent on Pepper
+
+> *"At your service. Scanning the local grid for maximum energy signatures."*
 
 A socially interactive agent for the **Pepper** humanoid robot (running in the
 **qiBullet** simulation) that recommends a social event to suit the person in
@@ -264,9 +266,12 @@ Key options:
 | Variable | Default | Notes |
 |---|---|---|
 | `TTS_BACKEND` | `auto` | `edge` (neural) · `pyttsx3` (offline) · `none` |
-| `TTS_VOICE` | `en-US-AriaNeural` | any Edge neural voice |
-| `WHISPER_MODEL` | `small` | `tiny`/`base`/`small`/`medium`/`large-v3` (≈6 GB VRAM fits up to medium) |
+| `TTS_VOICE` | `en-GB-RyanNeural` | any Edge neural voice |
+| `TTS_RATE` | `-8%` | Edge neural speaking-rate offset (e.g. `-8%`, `+10%`) |
+| `TTS_PITCH` | `-5Hz` | Edge neural pitch offset (e.g. `-5Hz`, `+10Hz`) |
+| `WHISPER_MODEL` | `large-v3` on GPU, `small` on CPU | `tiny`/`base`/`small`/`medium`/`large-v3`; `large-v3` fits a 6 GB GPU with `int8_float16` (≈2.2 GB) |
 | `WHISPER_DEVICE` | `auto` | `cuda` / `cpu` (auto-detects a GPU) |
+| `WHISPER_COMPUTE` | `int8_float16` on GPU, `int8` on CPU | `float16` / `int8_float16` / `int8`; `int8_float16` keeps headroom for the qiBullet sim |
 | `WHISPER_MIC_INDEX` | — | input device index if the default mic is wrong |
 
 Neural TTS uses the network; local Whisper runs on-device. For a fully offline

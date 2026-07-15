@@ -7,3 +7,4 @@ from perception.face_detector import (  # noqa: F401
     ScriptedPerception,
     WebcamSource,
 )
+from perception.face_recognizer import FaceRecognizer  # noqa: F401

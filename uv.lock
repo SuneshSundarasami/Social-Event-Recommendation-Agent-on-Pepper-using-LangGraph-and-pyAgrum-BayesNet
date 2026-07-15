@@ -341,20 +341,20 @@ wheels = [
 ]
 
 [[package]]
-name = "opencv-python"
+name = "opencv-contrib-python"
 version = "4.8.1.78"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c0/52/9fe76a56e01078a612812b40764a7b138f528b503f7653996c6cfadfa8ec/opencv-python-4.8.1.78.tar.gz", hash = "sha256:cc7adbbcd1112877a39274106cb2752e04984bc01a031162952e97450d6117f6", size = 92094255, upload-time = "2023-09-28T11:10:40.539Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/b3/9e705dbe26fbb055e56ffa8a0e398abb088a72ef503a1bf9613e8a807961/opencv-contrib-python-4.8.1.78.tar.gz", hash = "sha256:81804332299d656905d4f404fcec5f400d692c652d7a47926b7a441272ce795b", size = 151238067, upload-time = "2023-09-28T11:11:40.367Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/58/7ee92b21cb98689cbe28c69e3cf8ee51f261bfb6bc904ae578736d22d2e7/opencv_python-4.8.1.78-cp37-abi3-macosx_10_16_x86_64.whl", hash = "sha256:91d5f6f5209dc2635d496f6b8ca6573ecdad051a09e6b5de4c399b8e673c60da", size = 54739488, upload-time = "2023-09-28T11:00:22.939Z" },
-    { url = "https://files.pythonhosted.org/packages/a1/f6/57de91ea40c670527cd47a6548bf2cbedc68cec57c041793b256356abad7/opencv_python-4.8.1.78-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:bc31f47e05447da8b3089faa0a07ffe80e114c91ce0b171e6424f9badbd1c5cd", size = 33127231, upload-time = "2023-09-28T11:00:31.878Z" },
-    { url = "https://files.pythonhosted.org/packages/c7/a5/dd3735d08c1afc2e801f564f6602392cd86cf59bcb5a6712582ad0610a22/opencv_python-4.8.1.78-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9814beca408d3a0eca1bae7e3e5be68b07c17ecceb392b94170881216e09b319", size = 41016265, upload-time = "2023-09-28T11:00:39.652Z" },
-    { url = "https://files.pythonhosted.org/packages/b7/8a/b2f7e1a434d56bf1d7570fc5941ace0847404e1032d7f1f0b8fed896568d/opencv_python-4.8.1.78-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c4c406bdb41eb21ea51b4e90dfbc989c002786c3f601c236a99c59a54670a394", size = 61712178, upload-time = "2023-09-28T11:00:49.714Z" },
-    { url = "https://files.pythonhosted.org/packages/13/92/6f3194559d4e2a17826240f2466076728f4c92a2d124a32bfd51ca070019/opencv_python-4.8.1.78-cp37-abi3-win32.whl", hash = "sha256:a7aac3900fbacf55b551e7b53626c3dad4c71ce85643645c43e91fcb19045e47", size = 28281329, upload-time = "2023-09-28T11:00:57.464Z" },
-    { url = "https://files.pythonhosted.org/packages/38/d2/3e8c13ffc37ca5ebc6f382b242b44acb43eb489042e1728407ac3904e72f/opencv_python-4.8.1.78-cp37-abi3-win_amd64.whl", hash = "sha256:b983197f97cfa6fcb74e1da1802c7497a6f94ed561aba6980f1f33123f904956", size = 38065100, upload-time = "2023-09-28T11:01:04.856Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/c1/8807b1145c89f64734517ab18f0acc11e021059cd8fdf5c765f4633ae0bc/opencv_contrib_python-4.8.1.78-cp37-abi3-macosx_10_16_x86_64.whl", hash = "sha256:8d97192471c7d42532103ecebf8ad9d9534b7cd655ffadbccacb9ff3d4d49b40", size = 64403609, upload-time = "2023-09-28T11:01:42.815Z" },
+    { url = "https://files.pythonhosted.org/packages/63/cc/c7c858456e5ad20e91fb0b2bfcc93f0f5a3805e4f98050fc082020c006ae/opencv_contrib_python-4.8.1.78-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:8d6feb39d4af2cd1e8919110229bfedd13d4798a089bbe88fbd1a001b664d552", size = 41438544, upload-time = "2023-09-28T11:01:52.331Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/2c/e3be24016ad990eefb2b24bfb1cee64ca61f67117a1e6fb369a53fb0608e/opencv_contrib_python-4.8.1.78-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6cad1720ac701cb3742f48f95bef5cfa288b916b6ac5700f63d5809e3ad5999e", size = 46642477, upload-time = "2023-09-28T11:02:00.442Z" },
+    { url = "https://files.pythonhosted.org/packages/32/9e/4dcc0bb70e3b365dc85b8f96c63e6a306653f7cc6ed061aa6cc7b2bddee7/opencv_contrib_python-4.8.1.78-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3fb62bc5967a79bce7c576ef94dea0b9172e52bab91630103e042cb5f29a148a", size = 67807199, upload-time = "2023-09-28T11:02:11.339Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/bf/5880ce389a9d47fc96d52280f8ce3f69fbd0388662819fbcdf6fd829719f/opencv_contrib_python-4.8.1.78-cp37-abi3-win32.whl", hash = "sha256:f8737cf3055a6156c66c75432ed28ee3c1d52532b17d91ed73d508ae351b3e66", size = 34070000, upload-time = "2023-09-28T11:02:19.682Z" },
+    { url = "https://files.pythonhosted.org/packages/81/3c/bbb3ceee9fbefc505f98c24dafda68c7b3c4f83b6951c0712b4623fe4cce/opencv_contrib_python-4.8.1.78-cp37-abi3-win_amd64.whl", hash = "sha256:377936b02dcf82dc70261101381a8ad82b03d1298f185886be298d74fe35c328", size = 44790515, upload-time = "2023-09-28T11:02:28.069Z" },
 ]
 
 [[package]]
@@ -3063,7 +3063,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "edge-tts" },
     { name = "numpy" },
-    { name = "opencv-python" },
+    { name = "opencv-contrib-python" },
     { name = "playsound" },
     { name = "pyagrum" },
     { name = "pybullet" },
@@ -3081,7 +3081,7 @@ dev = [
 requires-dist = [
     { name = "edge-tts", specifier = ">=6.1" },
     { name = "numpy", specifier = "<1.25" },
-    { name = "opencv-python", specifier = ">=4.5,<4.9" },
+    { name = "opencv-contrib-python", specifier = ">=4.5,<4.9" },
     { name = "playsound", specifier = "==1.2.2" },
     { name = "pyagrum", specifier = ">=1.13.2" },
     { name = "pybullet", specifier = ">=3.2.7" },

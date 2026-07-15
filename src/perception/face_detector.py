@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import collections
 import logging
+import os
 import threading
 import time
 from typing import Deque, Optional
@@ -39,9 +40,28 @@ class WebcamSource:
     def __init__(self, index: int = 0) -> None:
         if cv2 is None:
             raise RuntimeError("OpenCV (cv2) is required for WebcamSource.")
-        self.cap = cv2.VideoCapture(index)
-        if not self.cap.isOpened():
+        # On Windows the default MSMF backend often opens the device but then
+        # can't grab frames (CvCapture_MSMF::grabFrame ... -1072875772). Prefer
+        # DirectShow there, which is far more reliable, and fall back to the
+        # platform default if DirectShow can't deliver a frame.
+        self.cap = self._open(index)
+        if self.cap is None:
             raise RuntimeError("Could not open webcam index %d." % index)
+
+    @staticmethod
+    def _open(index):
+        backends = []
+        if os.name == "nt":
+            backends.append(getattr(cv2, "CAP_DSHOW", 0))
+        backends.append(getattr(cv2, "CAP_ANY", 0))
+        for backend in backends:
+            cap = cv2.VideoCapture(index, backend) if backend else cv2.VideoCapture(index)
+            if cap.isOpened():
+                ok, _ = cap.read()  # MSMF can report isOpened() yet fail to stream
+                if ok:
+                    return cap
+            cap.release()
+        return None
 
     def read(self):
         ok, frame = self.cap.read()
@@ -103,6 +123,7 @@ class HaarFaceDetector:
         present_threshold: int = 2,
         cascade_path: Optional[str] = None,
         min_face_size: int = 60,
+        recognizer=None,
     ) -> None:
         if cv2 is None:
             raise RuntimeError("OpenCV (cv2) is required for HaarFaceDetector.")
@@ -110,6 +131,7 @@ class HaarFaceDetector:
         self.stable_threshold = stable_threshold
         self.present_threshold = present_threshold
         self.min_face_size = min_face_size
+        self.recognizer = recognizer  # optional FaceRecognizer (WP1 requirement #1)
         self._window: Deque[bool] = collections.deque(maxlen=window)
 
         if cascade_path is None:
@@ -121,11 +143,13 @@ class HaarFaceDetector:
         # Last frame/faces from tick() — handy for visual diagnostics.
         self.last_frame = None
         self.last_faces = []
+        self.last_identity: Optional[str] = None
 
     def tick(self) -> bool:
         frame = self.source.read()
         detected = False
         faces = []
+        identity = None
         if frame is not None:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = self.cascade.detectMultiScale(
@@ -135,8 +159,12 @@ class HaarFaceDetector:
                 minSize=(self.min_face_size, self.min_face_size),
             )
             detected = len(faces) > 0
+            if detected and self.recognizer is not None:
+                largest = max(faces, key=lambda b: b[2] * b[3])
+                identity = self.recognizer.identify(gray, largest)
         self.last_frame = frame
         self.last_faces = faces
+        self.last_identity = identity
         self._window.append(detected)
         return detected
 
@@ -146,6 +174,10 @@ class HaarFaceDetector:
 
     def is_present(self) -> bool:
         return self._window.count(True) >= self.present_threshold
+
+    def identify(self) -> Optional[str]:
+        """Authorized user's name for the current face, or None (WP1 requirement #1)."""
+        return self.last_identity
 
     def reset(self) -> None:
         self._window.clear()
@@ -199,6 +231,21 @@ class PreviewPerception:
 
     def is_present(self) -> bool:
         return self.inner.is_present()
+
+    def identify(self):
+        return getattr(self.inner, "identify", lambda: None)()
+
+    @property
+    def last_frame(self):
+        return getattr(self.inner, "last_frame", None)
+
+    @property
+    def last_faces(self):
+        return getattr(self.inner, "last_faces", [])
+
+    @property
+    def recognizer(self):
+        return getattr(self.inner, "recognizer", None)
 
     def reset(self) -> None:
         self.inner.reset()
@@ -282,6 +329,25 @@ class ThreadedPerception:
     def is_present(self) -> bool:
         with self._lock:
             return self.inner.is_present()
+
+    def identify(self):
+        with self._lock:
+            return getattr(self.inner, "identify", lambda: None)()
+
+    @property
+    def last_frame(self):
+        with self._lock:
+            return getattr(self.inner, "last_frame", None)
+
+    @property
+    def last_faces(self):
+        with self._lock:
+            return getattr(self.inner, "last_faces", [])
+
+    @property
+    def recognizer(self):
+        with self._lock:
+            return getattr(self.inner, "recognizer", None)
 
     def reset(self) -> None:
         with self._lock:

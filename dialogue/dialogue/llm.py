@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import random
 import re
 
 from dialogue.schema import EVIDENCE_LABELS, whitelist
@@ -94,17 +95,33 @@ class GroqEvidenceParser:
         return whitelist(data if isinstance(data, dict) else {})
 
 
+# Randomly nudged into the prompt each call so repeated turns (or repeated
+# runs, since Router now also randomizes which slot is asked) don't converge
+# on the same template — temperature alone tends to still favor one phrasing
+# for a near-identical prompt.
+_STYLE_HINTS = (
+    "Ask with a light, playful joke woven in.",
+    "Ask with genuine, warm curiosity, like a good friend catching up.",
+    "Ask using a fun, everyday comparison or hypothetical.",
+    "Ask with a bit of cheeky, dry humor.",
+    "Ask like you're mildly conspiratorial, as if sharing a fun secret.",
+    "Ask with an upbeat, slightly playful tone.",
+    "Ask with a wry, deadpan one-liner before the question.",
+)
+
+
 class GroqQuestionFramer:
     """Generates the next question conversationally with Groq.
 
-    Given what's already known and what's still missing, it asks ONE short, warm
-    question (fresh wording each time) about one or two unknown fields — never
-    reading the options out like a form. Falls back (returns None) on any error
-    so the graph uses the slot's canned question instead.
+    Given what's already known and what's still missing, it asks ONE short,
+    witty question (fresh wording AND a fresh angle each time, nudged by a
+    randomly chosen style hint) about one or two unknown fields — never
+    reading the options out like a form. Falls back (returns None) on any
+    error so the graph uses the slot's canned question instead.
     """
 
     def __init__(self, model: str | None = None, api_key: str | None = None,
-                 base_url: str = GROQ_BASE_URL, temperature: float = 0.8) -> None:
+                 base_url: str = GROQ_BASE_URL, temperature: float = 1.0) -> None:
         from openai import OpenAI
 
         key = api_key or os.getenv("GROQ_API_KEY") or os.getenv("GROK_KEY")
@@ -119,17 +136,24 @@ class GroqQuestionFramer:
         known = ", ".join("%s=%s" % (k, v) for k, v in filled.items()) or "nothing yet"
         target_hint = SLOT_HINTS.get(target, target)
         others = [m for m in missing if m != target]
+        style = random.choice(_STYLE_HINTS)
         system = (
-            "You are Pepper, a warm, friendly social robot helping someone choose a "
-            "social event. Ask ONE short, open, natural question (max ~20 words) to "
+            "You are JARVIS, a witty, warm social-event assistant running on a "
+            "Pepper robot. Ask ONE short, open, natural question (max ~20 words) to "
             "learn the TARGET below. Make it experiential and conversational — weave "
             "in what you already know as context — so the person answers freely and "
             "you can INFER the value from what they say. Do NOT read out the allowed "
             "options or ask a rigid 'this or that' question, and avoid yes/no "
-            "questions. Vary your phrasing; never ask about things already known. "
+            "questions. Add a touch of playful humor or wit where it fits naturally — "
+            "don't be dry or robotic. Never reuse the same wording, structure, or "
+            "example twice; genuinely vary your phrasing and angle every time. "
             "Return only the question.\n"
-            "Example of the right style: 'What sounds most fun to you on a low-key "
-            "evening out?'"
+            "Examples of the right style (for different targets — don't copy these "
+            "verbatim, just match the vibe and humor level):\n"
+            "- 'Are we talking five-star splurge, or five-dollar-footlong vibes?'\n"
+            "- 'Is this a solo mission, or are you dragging some poor friends along?'\n"
+            "- 'What sounds most fun to you on a low-key evening out?'\n"
+            "- 'Team couch-potato or team let's-run-a-marathon tonight?'"
         )
         user = "Already known: %s.\nTARGET to learn now: %s — %s.\n" % (
             known, target, target_hint)
@@ -139,6 +163,7 @@ class GroqQuestionFramer:
             # Reframe / conflict note from the Evaluator or ConflictResolver. The
             # note itself says how to ask (open rephrase, or either/or for a clash).
             user += "%s\n" % feedback
+        user += "Style for this question: %s\n" % style
         user += "Ask your next question."
         try:
             resp = self.client.chat.completions.create(

@@ -12,9 +12,11 @@ from dialogue.slots import DEFAULT_SLOTS
 
 class DialogueManager:
     def __init__(self, parser, input_provider, framer=None, slots=None,
-                 max_clarify: int = 2, recursion_limit: int = 100) -> None:
-        self.app = build_graph(parser, input_provider, framer,
-                               slots or DEFAULT_SLOTS, max_clarify)
+                 max_clarify: int = 2, recursion_limit: int = 100,
+                 randomize_order: bool = True) -> None:
+        self.app = build_graph(parser, input_provider, framer=framer,
+                               slots=slots or DEFAULT_SLOTS, max_attempts=max_clarify,
+                               randomize_order=randomize_order)
         self._config = {"recursion_limit": recursion_limit}
 
     def collect_evidence(self) -> Evidence:

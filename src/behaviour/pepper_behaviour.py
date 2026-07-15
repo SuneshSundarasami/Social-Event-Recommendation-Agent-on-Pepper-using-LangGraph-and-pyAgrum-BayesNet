@@ -59,6 +59,7 @@ class PepperBehaviour:
             "think": self._think,
             "present": self._present_gesture,
             "open_arms": self._open_arms,
+            "talk": self._talk,
         }.get(name)
         if handler is None:
             print("  [Pepper] (gesture) %s (no joint mapping — skipped)" % name)
@@ -163,6 +164,25 @@ class PepperBehaviour:
         try:
             p.closeHand("RHand")
             p.closeHand("LHand")
+        except Exception:
+            pass
+        self._relax_arms()
+
+    def _talk(self) -> None:
+        # A single, brief conversational beat -- one small raise-and-settle
+        # instead of open_arms's repeated swing cycles, so it stays roughly in
+        # sync however long the (LLM-generated, variable-length) question is.
+        p = self.pepper
+        p.setAngles(["RShoulderPitch", "LShoulderPitch"], [1.0, 1.05], 0.35)
+        p.setAngles(["RShoulderRoll", "LShoulderRoll"], [-0.15, 0.15], 0.35)
+        p.setAngles(["RElbowRoll", "LElbowRoll"], [1.3, -1.2], 0.35)
+        try:
+            p.openHand("RHand")
+        except Exception:
+            pass
+        time.sleep(0.45)
+        try:
+            p.closeHand("RHand")
         except Exception:
             pass
         self._relax_arms()
