@@ -16,8 +16,16 @@ running on Pepper in the qiBullet simulator*
 [Overview](#overview) ·
 [Demo](#demo) ·
 [Architecture](#architecture) ·
+[LangGraph dialogue](#the-conversation-a-langgraph-agent-graph) ·
 [Quick start](#quick-start) ·
 [Documentation](#documentation)
+
+**Read the docs →**
+[Robot runtime](src/README.md) ·
+[Perception](src/perception/README.md) ·
+[Dialogue](dialogue/README.md) ·
+[Recommender](src/recommender/README.md) ·
+[Behaviour](src/behaviour/README.md)
 
 </div>
 
@@ -37,16 +45,87 @@ on its tablet, and explains *why* it chose it.
 The design rule throughout: **the user speaks naturally, but the decision stays
 inspectable.**
 
-| | Capability | How |
-|---|---|---|
-| **Sees** | Notices a visitor and recognises returning faces | OpenCV Haar cascade with temporal smoothing, LBPH face verification |
-| **Listens** | Understands free-form typed or spoken replies | Local Whisper ASR, Groq-hosted LLM parser |
-| **Converses** | Asks open, varied questions and handles vague or contradictory answers | LangGraph multi-agent slot-filling graph |
-| **Reasons** | Produces an explainable, ranked recommendation | 3-layer pyAgrum Bayesian network |
-| **Acts** | Speaks, gestures and shows the result | Neural TTS, Pepper joint control, tablet texture |
-| **Stays safe** | Keeps LLM output legal, asks consent before storing faces, filters abuse | Three-layer whitelist, consent-gated enrollment, abuse filter |
+| | Capability | How | Details |
+|---|---|---|---|
+| **Sees** | Notices a visitor and recognises returning faces | OpenCV Haar cascade with temporal smoothing, LBPH face verification | [Perception →](src/perception/README.md) |
+| **Listens** | Understands free-form typed or spoken replies | Local Whisper ASR, Groq-hosted LLM parser | [Dialogue →](dialogue/README.md#speech-input) |
+| **Converses** | Asks open, varied questions and handles vague or contradictory answers | LangGraph multi-agent slot-filling graph | [Dialogue →](dialogue/README.md) |
+| **Reasons** | Produces an explainable, ranked recommendation | 3-layer pyAgrum Bayesian network | [Recommender →](src/recommender/README.md) |
+| **Acts** | Speaks, gestures and shows the result | Neural TTS, Pepper joint control, tablet texture | [Behaviour →](src/behaviour/README.md) |
+| **Stays safe** | Keeps LLM output legal, asks consent before storing faces, filters abuse | Three-layer whitelist, consent-gated enrollment, abuse filter | [Safety →](dialogue/README.md#from-free-text-to-safe-evidence) |
 
 ---
+
+## Documentation
+
+Every part of the system has its own README with diagrams. Click a card to open it.
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h3><a href="src/README.md">Robot runtime →</a></h3>
+      <p>The state machine, run modes, the two-process JSON bridge and every fallback</p>
+      <a href="src/README.md">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/fsm-dark.svg">
+          <img src="docs/diagrams/fsm.svg" alt="Robot runtime" width="100%">
+        </picture>
+      </a>
+    </td>
+    <td width="33%" valign="top">
+      <h3><a href="src/perception/README.md">Perception →</a></h3>
+      <p>Face detection with smoothing, face verification and consent-based enrollment</p>
+      <a href="src/perception/README.md">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/perception-pipeline-dark.svg">
+          <img src="docs/diagrams/perception-pipeline.svg" alt="Perception" width="100%">
+        </picture>
+      </a>
+    </td>
+    <td width="33%" valign="top">
+      <h3><a href="dialogue/README.md">Dialogue →</a></h3>
+      <p>The LangGraph agent graph, LLM parsing, safety guards and speech input</p>
+      <a href="dialogue/README.md">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/dialogue-graph-dark.svg">
+          <img src="docs/diagrams/dialogue-graph.svg" alt="Dialogue" width="100%">
+        </picture>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" valign="top">
+      <h3><a href="src/recommender/README.md">Recommender →</a></h3>
+      <p>Network topology, rule-generated probability tables, inference and explanations</p>
+      <a href="src/recommender/README.md">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/bayesian-network-dark.svg">
+          <img src="docs/diagrams/bayesian-network.svg" alt="Recommender" width="100%">
+        </picture>
+      </a>
+    </td>
+    <td width="33%" valign="top">
+      <h3><a href="src/behaviour/README.md">Behaviour →</a></h3>
+      <p>Speech and gesture timing, the gesture library, voices and the tablet display</p>
+      <a href="src/behaviour/README.md">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/speech-gesture-dark.svg">
+          <img src="docs/diagrams/speech-gesture.svg" alt="Behaviour" width="100%">
+        </picture>
+      </a>
+    </td>
+    <td width="33%" valign="top">
+      <h3>More references</h3>
+      <p><a href="TECHNICAL_DOCUMENTATION.md">Technical documentation</a>: every module and parameter</p>
+      <p><a href="dialogue/RUNNING.md">Running and tracing the dialogue</a> in LangSmith and LangGraph Studio</p>
+      <p><a href="PLAN.md">Work plan</a> · <a href="Proposal/proposal.pdf">Project proposal</a></p>
+      <p><a href="docs/diagrams/build.py">Figure generator</a>: rebuilds every diagram</p>
+    </td>
+  </tr>
+</table>
+
+---
+
 
 ## Demo
 
@@ -104,6 +183,10 @@ stdio.
   </picture>
 </p>
 
+> **Go deeper →** [Perception](src/perception/README.md) · [Dialogue](dialogue/README.md) ·
+> [Recommender](src/recommender/README.md) · [Behaviour](src/behaviour/README.md) ·
+> [Robot runtime and the two-process bridge](src/README.md#the-two-runtime-bridge)
+
 ### Interaction lifecycle
 
 Each encounter follows a six-state machine.
@@ -114,6 +197,33 @@ Each encounter follows a six-state machine.
     <img src="docs/diagrams/lifecycle.svg" alt="Interaction lifecycle" width="100%">
   </picture>
 </p>
+
+> **Go deeper →** every transition, the greeting steps and what happens when a step fails:
+> [the state machine in detail](src/README.md#the-interaction-state-machine)
+
+### The conversation: a LangGraph agent graph
+
+During the Conversation state, a LangGraph `StateGraph` of five cooperating
+nodes runs the dialogue. It picks the next unknown preference, has the LLM ask
+an open question, parses the reply safely, resolves contradictions, and decides
+whether to move on, ask again, or fall back to a default.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/dialogue-graph-dark.svg">
+    <img src="docs/diagrams/dialogue-graph.svg" alt="LangGraph dialogue manager" width="100%">
+  </picture>
+</p>
+
+| See it | How |
+|---|---|
+| **Run it live in LangGraph Studio** | `cd dialogue && uv run langgraph dev` opens the graph in the browser; each question pauses for your answer ([guide](dialogue/RUNNING.md#4-visualize--step-through-in-langgraph-studio)) |
+| **Watch the recording** | [`demo/Final_SERA_langgraph.mp4`](demo/Final_SERA_langgraph.mp4): the graph running in LangGraph |
+| **Trace every run** | With `LANGSMITH_*` set, each node's input, output and LLM call shows up in LangSmith ([guide](dialogue/RUNNING.md#3-view-runs-in-langsmith-smithlangchaincom)) |
+| **LangGraph's own rendering** | [`docs/dialogue_graph.png`](docs/dialogue_graph.png), exported from the compiled graph |
+
+> **Go deeper →** every node, the safety guards and speech input:
+> [Dialogue README](dialogue/README.md)
 
 ### What the agent learns and recommends
 
@@ -126,6 +236,9 @@ Each encounter follows a six-state machine.
 
 The conversation doesn't need to fill all six. The network reasons over
 whatever evidence it has, and treats the rest as unknown.
+
+> **Go deeper →** how the probability tables are generated and how the spoken
+> explanation is produced: [Recommender README](src/recommender/README.md)
 
 <table>
   <tr>
@@ -143,28 +256,6 @@ whatever evidence it has, and treats the rest as unknown.
 </table>
 
 <sub>The image Pepper shows on its tablet for each event.</sub>
-
----
-
-## Documentation
-
-Each part of the system has its own README with diagrams and details.
-
-| Section | Covers | README |
-|---|---|---|
-| **Robot runtime and integration** | Orchestrator, interaction FSM, run modes, the two-runtime JSON bridge, fallbacks | [`src/README.md`](src/README.md) |
-| **Perception** | Camera sources, face detection with smoothing, face verification, consent-based enrollment | [`src/perception/README.md`](src/perception/README.md) |
-| **Dialogue** | LangGraph agent graph, LLM parsing and question framing, safety guards, speech input | [`dialogue/README.md`](dialogue/README.md) |
-| **Recommender** | Bayesian network topology, rule-generated CPTs, inference, explanations | [`src/recommender/README.md`](src/recommender/README.md) |
-| **Behaviour** | Speech and gesture coordination, gesture library, TTS fallbacks, tablet display | [`src/behaviour/README.md`](src/behaviour/README.md) |
-
-Further references:
-
-- [`TECHNICAL_DOCUMENTATION.md`](TECHNICAL_DOCUMENTATION.md): the full engineering reference, covering every module, parameter and design decision
-- [`dialogue/RUNNING.md`](dialogue/RUNNING.md): running the dialogue alone and inspecting traces in LangSmith and LangGraph Studio
-- [`PLAN.md`](PLAN.md): the original work plan, work packages and interfaces
-- [`docs/diagrams/build.py`](docs/diagrams/build.py): generates every figure in these READMEs (`uv run python docs/diagrams/build.py`)
-- [`Proposal/proposal.pdf`](Proposal/proposal.pdf): the project proposal
 
 ---
 

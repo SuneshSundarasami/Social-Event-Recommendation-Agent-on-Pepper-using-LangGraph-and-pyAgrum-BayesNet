@@ -55,12 +55,13 @@ def layer_label(s: Svg, y, label):
 
 @figure
 def architecture():
-    s = Svg(1100, 560, "System architecture",
+    s = Svg(1120, 560, "System architecture",
             "One route from perception to action, orchestrated by the interaction state machine "
             "across two Python processes")
     top = s.top
 
-    kb = s.node(700, top, 300, 66, "Knowledge & data",
+    # centred between the two boxes it feeds, so both arrows drop straight down
+    kb = s.node(740, top, 300, 66, "Knowledge & data",
                 lines=["event catalogue → CPTs · 8 event images", "schema in contracts.py"],
                 color="grey", title_size=14, line_size=11.5)
 
@@ -95,10 +96,8 @@ def architecture():
            color=MUTED, dash=True, width=1.6,
            label="per turn: Pepper asks (TTS) → visitor answers (ASR) → until all slots are filled",
            lpos=((boxes[0].cx + boxes[2].cx - 30) / 2, yl - 8), lsize=11.5, litalic=True)
-    s.edge([kb.b(-60), (kb.cx - 60, y - 22), (boxes[3].cx, y - 22), boxes[3].t()],
-           color=GREY_ARC, width=1.6)
-    s.edge([kb.b(80), (kb.cx + 80, y - 22), (boxes[4].cx, y - 22), boxes[4].t()],
-           color=GREY_ARC, width=1.6)
+    for b in boxes[3:]:
+        s.edge([(b.cx, kb.y + kb.h), b.t()], color=GREY_ARC, width=1.8)
 
     sy = y + h + 34
     s.rect(xs[0], sy, xs[-1] + w - xs[0], 42, s.fill("navy"), PALETTE["navy"][2], rx=21,
@@ -110,7 +109,8 @@ def architecture():
         s.line(b.cx, b.y + b.h, b.cx, sy, color="#9FB2C6", width=2, dash="3 4")
 
     ry = sy + 78
-    s.edge([boxes[4].r(), (1070, boxes[4].cy), (1070, ry), (visitor.cx, ry), visitor.b()],
+    rx = boxes[4].x + w + 28   # clear of the box edge
+    s.edge([boxes[4].r(), (rx, boxes[4].cy), (rx, ry), (visitor.cx, ry), visitor.b()],
            color=BLUE_FB, width=2.2,
            label="the visitor sees and hears the result: speech · gestures · tablet image",
            lpos=(560, ry - 9), lsize=12)
