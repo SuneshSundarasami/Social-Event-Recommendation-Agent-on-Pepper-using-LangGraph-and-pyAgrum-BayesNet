@@ -26,13 +26,51 @@ from dialogue.slots import SLOT_HINTS
 log = logging.getLogger("wp2.llm")
 
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-DEFAULT_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_MODEL = "llama-3.1-8b-instant"
 
 
 def _schema_description() -> str:
     return "\n".join(
         f'- {slot}: one of {list(opts)}' for slot, opts in EVIDENCE_LABELS.items()
     )
+
+
+def _create_completion(client, model: str, reasoning_state: list, base_kwargs: dict):
+    """``chat.completions.create``, transparently trying Groq's
+    ``reasoning_format="hidden"`` extension first.
+
+    Reasoning models (e.g. Qwen3) otherwise return their raw ``<think>...``
+    chain-of-thought as the message content, which — combined with a small
+    ``max_tokens`` meant for a short final answer — gets truncated mid-thought
+    before ever producing one. ``reasoning_format="hidden"`` strips the
+    thinking from the response, but the model still spends real budget on it
+    internally, so ``max_tokens`` is floored well above what a plain model
+    would need. Non-reasoning models reject the parameter outright (400), so
+    the result is cached per instance (via the ``reasoning_state`` 1-item
+    list: ``[None]`` unknown, ``[True]``/``[False]`` known) to avoid retrying
+    on every call once it's known either way.
+    """
+    from openai import BadRequestError
+
+    if reasoning_state[0] is not False:
+        kwargs = dict(base_kwargs, extra_body={"reasoning_format": "hidden"})
+        if "max_tokens" in kwargs:
+            # The reasoning chain itself is stochastic in length and can run to
+            # several thousand tokens before the model reaches a final answer —
+            # 800 was observed to still truncate mid-thought on this framer's
+            # fuller prompt. 4096 leaves real headroom; still much cheaper than
+            # letting a reframe/default cycle repeat because every attempt
+            # silently comes back empty.
+            kwargs["max_tokens"] = max(kwargs["max_tokens"], 4096)
+        try:
+            resp = client.chat.completions.create(model=model, **kwargs)
+            reasoning_state[0] = True
+            return resp
+        except BadRequestError as exc:
+            if "reasoning_format" not in str(exc):
+                raise
+            reasoning_state[0] = False
+    return client.chat.completions.create(model=model, **base_kwargs)
 
 
 class GroqEvidenceParser:
@@ -46,6 +84,7 @@ class GroqEvidenceParser:
             raise RuntimeError("Groq API key not set (GROQ_API_KEY / GROK_KEY in .env).")
         self.model = model or os.getenv("GROQ_MODEL", DEFAULT_MODEL)
         self.client = OpenAI(api_key=key, base_url=base_url)
+        self._reasoning_state = [None]
 
     def parse(self, user_text: str, focus_slot: str | None = None,
               question: str | None = None) -> dict:
@@ -81,13 +120,12 @@ class GroqEvidenceParser:
         user = ctx + f'User reply: "{user_text}". Return only the JSON object.'
 
         try:
-            resp = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "system", "content": system},
-                          {"role": "user", "content": user}],
-                response_format={"type": "json_object"},
-                temperature=0,
-            )
+            resp = _create_completion(self.client, self.model, self._reasoning_state, {
+                "messages": [{"role": "system", "content": system},
+                             {"role": "user", "content": user}],
+                "response_format": {"type": "json_object"},
+                "temperature": 0,
+            })
             data = json.loads(resp.choices[0].message.content or "{}")
         except Exception as exc:  # pragma: no cover - network dependent
             log.warning("Groq parse failed (%s); returning no evidence.", exc)
@@ -100,13 +138,12 @@ class GroqEvidenceParser:
 # on the same template — temperature alone tends to still favor one phrasing
 # for a near-identical prompt.
 _STYLE_HINTS = (
-    "Ask with a light, playful joke woven in.",
-    "Ask with genuine, warm curiosity, like a good friend catching up.",
-    "Ask using a fun, everyday comparison or hypothetical.",
-    "Ask with a bit of cheeky, dry humor.",
-    "Ask like you're mildly conspiratorial, as if sharing a fun secret.",
-    "Ask with an upbeat, slightly playful tone.",
-    "Ask with a wry, deadpan one-liner before the question.",
+    "Ask with calm, genuine curiosity.",
+    "Ask in a courteous, attentive tone, like a good host.",
+    "Ask using a brief, natural everyday comparison.",
+    "Ask plainly and efficiently, with quiet warmth.",
+    "Ask with understated, dry wit — one subtle touch, nothing more.",
+    "Ask in a considerate, professional tone.",
 )
 
 
@@ -114,14 +151,14 @@ class GroqQuestionFramer:
     """Generates the next question conversationally with Groq.
 
     Given what's already known and what's still missing, it asks ONE short,
-    witty question (fresh wording AND a fresh angle each time, nudged by a
+    composed question (fresh wording AND a fresh angle each time, nudged by a
     randomly chosen style hint) about one or two unknown fields — never
     reading the options out like a form. Falls back (returns None) on any
     error so the graph uses the slot's canned question instead.
     """
 
     def __init__(self, model: str | None = None, api_key: str | None = None,
-                 base_url: str = GROQ_BASE_URL, temperature: float = 1.0) -> None:
+                 base_url: str = GROQ_BASE_URL, temperature: float = 0.7) -> None:
         from openai import OpenAI
 
         key = api_key or os.getenv("GROQ_API_KEY") or os.getenv("GROK_KEY")
@@ -130,6 +167,7 @@ class GroqQuestionFramer:
         self.model = model or os.getenv("GROQ_MODEL", DEFAULT_MODEL)
         self.temperature = temperature
         self.client = OpenAI(api_key=key, base_url=base_url)
+        self._reasoning_state = [None]
 
     def frame(self, filled: dict, missing: list[str], target: str,
               attempt: int = 0, feedback: str | None = None) -> str | None:
@@ -138,22 +176,23 @@ class GroqQuestionFramer:
         others = [m for m in missing if m != target]
         style = random.choice(_STYLE_HINTS)
         system = (
-            "You are JARVIS, a witty, warm social-event assistant running on a "
-            "Pepper robot. Ask ONE short, open, natural question (max ~20 words) to "
+            "You are JARVIS, a composed, courteous social-event assistant running on "
+            "a Pepper robot. Ask ONE short, open, natural question (max ~20 words) to "
             "learn the TARGET below. Make it experiential and conversational — weave "
             "in what you already know as context — so the person answers freely and "
             "you can INFER the value from what they say. Do NOT read out the allowed "
             "options or ask a rigid 'this or that' question, and avoid yes/no "
-            "questions. Add a touch of playful humor or wit where it fits naturally — "
-            "don't be dry or robotic. Never reuse the same wording, structure, or "
-            "example twice; genuinely vary your phrasing and angle every time. "
-            "Return only the question.\n"
+            "questions. Keep the tone professional and understated — at most a subtle, "
+            "dry touch of wit, used sparingly, never slang or forced jokes. Never reuse "
+            "the same wording, structure, or example twice; genuinely vary your "
+            "phrasing and angle every time. Return only the question.\n"
             "Examples of the right style (for different targets — don't copy these "
-            "verbatim, just match the vibe and humor level):\n"
-            "- 'Are we talking five-star splurge, or five-dollar-footlong vibes?'\n"
-            "- 'Is this a solo mission, or are you dragging some poor friends along?'\n"
-            "- 'What sounds most fun to you on a low-key evening out?'\n"
-            "- 'Team couch-potato or team let's-run-a-marathon tonight?'"
+            "verbatim, just match the tone):\n"
+            "- 'Would you prefer something more refined, or are you happy to keep it "
+            "simple?'\n"
+            "- 'Will it just be you this evening, or is anyone joining you?'\n"
+            "- 'What kind of pace suits you tonight — relaxed, or something livelier?'\n"
+            "- 'Any particular interests I should factor in?'"
         )
         user = "Already known: %s.\nTARGET to learn now: %s — %s.\n" % (
             known, target, target_hint)
@@ -166,13 +205,12 @@ class GroqQuestionFramer:
         user += "Style for this question: %s\n" % style
         user += "Ask your next question."
         try:
-            resp = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "system", "content": system},
-                          {"role": "user", "content": user}],
-                temperature=self.temperature,
-                max_tokens=60,
-            )
+            resp = _create_completion(self.client, self.model, self._reasoning_state, {
+                "messages": [{"role": "system", "content": system},
+                             {"role": "user", "content": user}],
+                "temperature": self.temperature,
+                "max_tokens": 60,
+            })
             return (resp.choices[0].message.content or "").strip() or None
         except Exception as exc:  # pragma: no cover - network dependent
             log.warning("Groq question framing failed (%s); using canned question.", exc)

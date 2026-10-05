@@ -19,6 +19,9 @@ dependencies = [
     "edge-tts>=6.1",          # neural TTS voice (natural prosody)
     "playsound==1.2.2",       # audio playback for neural TTS
     "threadpool>=1.3.2",
+    # WP4 — event tablet image (workshop.avif / food.avif need AVIF decode
+    # support; pinned to 1.4.6, the last version with a cp38-win_amd64 wheel).
+    "pillow-avif-plugin==1.4.6",
 ]
 
 [dependency-groups]

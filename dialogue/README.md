@@ -24,8 +24,23 @@ commit → clarify ambiguous answers, falling back to a default after N tries. S
 **Conversational questions.** With Groq, the next question is *generated* each
 turn from what's known vs. still missing (`GroqQuestionFramer`) — fresh wording,
 no form-like option lists, and one rich answer ("somewhere cheap outside with a
-few friends") fills several slots so those questions are skipped. Use
-`--no-frame` to fall back to fixed question wording.
+few friends") fills several slots so those questions are skipped. A randomly
+chosen style hint (calm curiosity, a brief everyday comparison, an occasional
+understated touch of dry wit, …) is nudged into the prompt each call so
+repeated turns don't converge on one template; the tone overall stays
+composed and professional rather than jokey. Use `--no-frame` to fall back to
+fixed question wording.
+
+**Slot order.** `Router` (in `graph.py`) picks the next unknown slot at
+random each run by default (`randomize_order=True` in `build_graph` /
+`DialogueManager`), so the conversation doesn't always open with the same
+question (e.g. always Budget). Tests that hard-code answers against a fixed
+sequence pass `randomize_order=False`.
+
+**Abusive language.** `AnswerParser` checks the raw reply against a small
+flagged-word list (`_ABUSE_WORDS` in `graph.py`) before it reaches the LLM
+parser; a match short-circuits to a polite "let's keep this friendly" prompt
+instead of being parsed as evidence.
 
 ## Setup
 

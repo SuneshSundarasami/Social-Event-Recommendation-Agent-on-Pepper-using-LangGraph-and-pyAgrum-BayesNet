@@ -72,7 +72,7 @@ boundary) and is the single most important safety invariant in the codebase.
 | State | Robot action | Key transition out |
 |---|---|---|
 | **Idle** | Passive camera monitoring | Face *stable* for several consecutive frames |
-| **Greeting** | Wave + speech greeting (+ optional name) | User remains present |
+| **Greeting** | Face verification (identify, or ask name + consent to enroll) + JARVIS greeting (wave → nod → open-arms) | User remains present |
 | **Conversation** | Preference questions with clarification | Required evidence collected |
 | **Reasoning** | "Let me think" thinking pose while inference runs | Posterior computed |
 | **Recommendation** | Top events + explanation + open-palm gesture + tablet image | User acknowledges / timeout |
@@ -153,9 +153,12 @@ Project/
 │   ├── stubs.py                      # Console/scripted stand-ins for WP2/WP3/WP4
 │   ├── dialogue_bridge.py            # WP5 robot-side client for the dialogue service
 │   ├── check_perception.py           # Standalone perception diagnostic tool
+│   ├── enroll_face.py                # Standalone CLI to pre-enroll a face offline
 │   ├── perception/
 │   │   ├── __init__.py               # Re-exports the perception classes
-│   │   └── face_detector.py          # WP1 sources + Haar detector + wrappers + scripted
+│   │   ├── face_detector.py          # WP1 sources + Haar detector + wrappers + scripted
+│   │   ├── face_recognizer.py        # WP1 optional: LBPH face verification + enrollment
+│   │   └── known_faces/              # Enrolled face photos (local-only, gitignored)
 │   ├── behaviour/
 │   │   ├── __init__.py               # Re-exports PepperBehaviour
 │   │   ├── pepper_behaviour.py       # WP4 gestures + speech coordination
@@ -219,11 +222,15 @@ projects** with separate virtual environments and are connected by a subprocess
 - **Name:** `social-event-agent`, version `0.1.0`.
 - **`requires-python = ">=3.8,<3.9"`** — hard-pinned to 3.8.
 - **Dependencies:**
-  - WP1 perception: `opencv-python>=4.5,<4.9`, `numpy<1.25`, `qibullet>=1.4.3`,
-    `pybullet>=3.2.7`.
+  - WP1 perception: `opencv-contrib-python>=4.5,<4.9` (the *contrib* build, so
+    `cv2.face` is available for LBPH face verification/enrollment), `numpy<1.25`,
+    `qibullet>=1.4.3`, `pybullet>=3.2.7`.
   - WP3 recommender: `pyagrum>=1.13.2`.
   - WP4 behaviour: `pyttsx3>=2.99` (offline TTS), `edge-tts>=6.1` (neural TTS),
-    `playsound==1.2.2` (audio playback for neural TTS), `threadpool>=1.3.2`.
+    `playsound==1.2.2` (audio playback for neural TTS), `threadpool>=1.3.2`,
+    `pillow-avif-plugin==1.4.6` (AVIF decode support for two of the event tablet
+    images; pinned to the last version shipping a prebuilt cp38-win_amd64 wheel —
+    newer versions need to compile against libavif headers that aren't installed).
 - **Dev group:** `pytest>=8.0`.
 - **`[tool.uv] package = false`** — standalone project, not a workspace member.
 - **Pytest config:** `pythonpath = ["src"]`, `testpaths = ["tests"]`.
@@ -289,6 +296,11 @@ the contract between them is the *JSON shape* of the evidence dict.
 
 This module is the single source of truth on the robot side. It is deliberately
 dependency-free and Python-3.8 compatible so both sides can import it in principle.
+
+**`AGENT_NAME = "JARVIS"`** and **`AGENT_SLOGAN = "At your service. Scanning the
+local grid for maximum energy signatures."`** — the agent's identity, defined
+once here and imported everywhere it's spoken or printed (`state_machine.py`'s
+greeting/farewell lines, `main.py`'s startup banner).
 
 **`EVIDENCE_LABELS`** — legal label values for each of the six preference slots.
 Any slot may be *missing* from a concrete evidence dict (partial evidence is
@@ -391,13 +403,20 @@ Implements the `Perception` contract. Constructor parameters:
 | `present_threshold` | `2` | frames-with-face needed to still be *present* |
 | `cascade_path` | `None` | defaults to OpenCV's bundled `haarcascade_frontalface_default.xml` |
 | `min_face_size` | `60` | minimum face box size in px |
+| `recognizer` | `None` | optional `FaceRecognizer` (§6.7) — enables face verification |
 
 - Loads the Haar cascade from `cv2.data.haarcascades + "haarcascade_frontalface_default.xml"`
   and raises if the classifier is empty.
 - **`tick()`** — reads one frame, converts to grayscale, runs
   `detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60,60))`.
   Appends a boolean (`len(faces) > 0`) to the window and returns it. Stores
-  `last_frame` and `last_faces` for diagnostics/overlays.
+  `last_frame` and `last_faces` for diagnostics/overlays. **If a `recognizer` was
+  passed**, also picks the largest detected box (`max(faces, key=lambda b: b[2]*b[3])`)
+  and calls `recognizer.identify(gray, box)`, caching the result in
+  `self.last_identity` (`Optional[str]`).
+- **`identify()`** — returns `self.last_identity` (the WP1 optional face
+  verification result for the current frame, or `None` if unrecognized/no
+  recognizer wired).
 - **`face_stable()`** — the **Idle→Greeting trigger**: true only when the window
   is *full* (`len == maxlen`) **and** at least `stable_threshold` (4) of those 5
   frames contained a face. This strictness avoids false triggers.
@@ -420,7 +439,10 @@ whose colour encodes state:
 - **searching** → red `(0,0,255)`
 
 It forwards the full `Perception` interface, so it can drop in anywhere a detector
-is expected. The window updates whenever the FSM ticks perception.
+is expected. The window updates whenever the FSM ticks perception. It also
+forwards `identify()` and exposes `last_frame`/`last_faces`/`recognizer` as
+pass-through properties, so the FSM's enrollment flow (§7.4) can reach the inner
+detector's live frame/recognizer through the decorator transparently.
 
 ### 6.4 `ThreadedPerception` — background capture + preview
 
@@ -437,7 +459,10 @@ inner detector on its **own daemon thread**:
   stability).
 - **FSM-facing methods are cheap, lock-guarded accessors:** `tick()` just returns
   the latest cached `_detected`; `face_stable()`/`is_present()`/`reset()` delegate
-  under the lock.
+  under the lock. `identify()` and the `last_frame`/`last_faces`/`recognizer`
+  properties are likewise lock-guarded pass-throughs to the inner detector, so the
+  enrollment flow (§7.4) can read the live frame/recognizer from whichever thread
+  owns the FSM without racing the capture thread.
 - `release()` sets the stop event, joins the thread (2 s timeout), releases the
   inner source, and destroys the window.
 
@@ -469,6 +494,61 @@ live window with detection boxes and the smoothing status (`detected` / `present
 - Loop: `det.tick()`, read `is_present()`/`face_stable()`, draw boxes + coloured
   status text, quit on `q`/Esc. Prints an explicit error if `cv2` is missing.
 
+### 6.7 `face_recognizer.py` — face verification & consent-based enrollment (optional #1/#2)
+
+File: `src/perception/face_recognizer.py`. On-device face **recognition** (not
+just detection) using OpenCV's `cv2.face` module — LBPH (Local Binary Patterns
+Histograms), available only in the *contrib* build (`opencv-contrib-python`, see
+§4.2). Imported lazily so the rest of perception still works if `cv2.face` is
+absent (e.g. a non-contrib OpenCV install).
+
+- **`FACE_SIZE = (200, 200)`** — the fixed size every enrolled/query face crop is
+  normalised to before training/inference.
+- **`_default_known_dir()`** — `<perception module dir>/known_faces`, the root of
+  one subdirectory per enrolled person.
+- **`preprocess(gray_frame, box) -> ndarray`** — crops the detector's `(x, y, w,
+  h)` box out of a grayscale frame and resizes it to `FACE_SIZE`. Shared by the
+  recognizer, `enroll_face.py`, and the FSM's live-enrollment path so training and
+  inference always see identically shaped input.
+- **`FaceRecognizer(known_dir=None, confidence_threshold=75.0)`:**
+  - `_enrolled_people()` — lists the subdirectories of `known_dir` (one per name).
+  - `_train()` — loads every sample image under each person's directory, builds a
+    `cv2.face.LBPHFaceRecognizer_create()`, and trains it. Sets `self.available =
+    True` on success; called once at construction, and again by `retrain()`.
+  - **`identify(gray_frame, box) -> Optional[str]`** — preprocesses the box,
+    predicts `(label, confidence)`. LBPH confidence is a **distance**, so lower is
+    a better match: returns the matched name only if `confidence <=
+    confidence_threshold` (default `75.0`), else `None`. Empirically a genuine
+    match scores close to `0.0`; a stranger scores roughly `180`, so the default
+    threshold sits with wide margin on both sides.
+  - **`enroll_sample(frame, box, name) -> str`** — converts BGR→gray if needed,
+    preprocesses, and saves the crop to `known_faces/<name>/NNN.jpg` (auto
+    zero-padded index). Returns the saved path.
+  - **`retrain()`** — re-runs `_train()` so a freshly enrolled person is
+    recognizable immediately, without restarting the process.
+
+`src/perception/known_faces/` is **git-ignored** — enrolled photos are biometric
+data and stay local-only, never committed.
+
+### 6.8 `enroll_face.py` — standalone offline enrollment CLI
+
+File: `src/enroll_face.py`. Pre-enrolls a person outside of a live interaction —
+useful for setting up known users ahead of a demo. Opens the webcam via the same
+`HaarFaceDetector` + `WebcamSource` used at runtime (so detection behaves
+identically), then every `--interval` seconds saves the largest detected face
+(via `preprocess()`) to `perception/known_faces/<name>/`.
+
+- **Flags:** `--name` (required), `--count` (default `20`), `--camera-index`
+  (default `0`), `--interval` (seconds between captures, default `0.3`).
+- Shows a live preview window with the detection box and a `saved/count` counter;
+  `q`/Esc stops early. Exits with an explicit error if `cv2` isn't installed.
+- Example: `python enroll_face.py --name Sunesh --count 30 --camera-index 1`.
+
+This CLI and the FSM's **live, consent-based enrollment** (§7.4/§7.5) write to the
+exact same directory layout, so either path — pre-enrolling offline or being
+asked live by JARVIS the first time it sees someone — produces samples the other
+can build on.
+
 ---
 
 ## 7. WP1 — The six-state interaction FSM
@@ -490,7 +570,7 @@ weak/empty recommendation still presents whatever is available.
 ```python
 InteractionFSM(perception, dialogue, recommender, behaviour,
                idle_poll=0.1, presence_check_frames=3, ack_timeout=15.0,
-               name_provider=None)
+               name_provider=None, get_text=None, enroll_samples=15)
 ```
 
 | Param | Default | Meaning |
@@ -502,7 +582,9 @@ InteractionFSM(perception, dialogue, recommender, behaviour,
 | `idle_poll` | `0.1` s | sleep between perception polls |
 | `presence_check_frames` | `3` | frames sampled per presence check |
 | `ack_timeout` | `15.0` s | how long to wait for user acknowledgement |
-| `name_provider` | `None` | optional `() -> Optional[str]` for a personalised greeting |
+| `name_provider` | `None` | optional `() -> Optional[str]` for a personalised greeting when face verification (below) yields nothing |
+| `get_text` | `None` | optional `() -> str` for typed replies during the enrollment name/consent exchange; defaults to `_default_get_text` (console `input()`) |
+| `enroll_samples` | `15` | number of live camera samples to capture when enrolling a new face |
 
 Internal state: `state = State.IDLE`, `evidence = {}`, `result = []`,
 `_running = False`.
@@ -523,21 +605,67 @@ is reset in a `finally`. `stop()` clears `_running`.
 - **`_reset_interaction()`** — best-effort `behaviour.clear_display()` (via
   `getattr`, tolerant of stubs without it), then clears `evidence`, `result`, and
   calls `perception.reset()`.
+- **`_default_get_text()`** — `staticmethod`; the console fallback for
+  `get_text`: `input("  [you] ").strip()`, returning `""` on `EOFError`.
+- **`_capture_enrollment_samples(recognizer, name) -> int`** (optional #2) —
+  captures live samples of the person currently in view for a fresh enrollment,
+  **reusing the FSM's already-open camera feed** (`self.perception`) rather than
+  opening a second competing webcam connection. Loops up to `enroll_samples * 4`
+  attempts: each iteration calls `perception.tick()`, reads `last_frame` /
+  `last_faces` (via `getattr`, tolerant of perception objects without them — e.g.
+  `ScriptedPerception`), and if a face is present picks the largest box
+  (`max(faces, key=lambda b: b[2]*b[3])`) and calls
+  `recognizer.enroll_sample(frame, box, name)`, incrementing `saved` on success
+  (individual capture failures are logged at debug level and skipped, not fatal).
+  Sleeps `0.15` s between attempts. Returns the number of samples actually saved.
+- **`_identify_or_enroll() -> Optional[str]`** (optional #1/#2) — the face
+  verification + consent-based enrollment flow, called at the start of
+  `_greeting()`:
+  1. If `perception.identify` exists and returns a name, that name is returned
+     immediately (known, authorized visitor — no camera-facing questions needed).
+  2. Else, if `perception.recognizer` is `None` (no camera source wired for this
+     run, e.g. `--source scripted`), returns `None` — nothing to enroll into.
+  3. Else (webcam/Pepper source, unrecognized face): asks *"I don't think we've
+     met yet. What's your name?"*, reads a name via `get_text()`. An empty name
+     aborts (returns `None`).
+  4. Asks *"Nice to meet you, {name}. Would it be okay if I remember your face
+     for next time?"* and reads consent via `get_text()`. If the reply starts
+     with `"y"` (case-insensitive): captures `enroll_samples` live samples
+     (`_capture_enrollment_samples`), and if any were saved, calls
+     `recognizer.retrain()` and confirms *"Great, I'll remember you next time,
+     {name}!"*; if none were captured, apologises and continues without enrolling.
+     If consent is declined, says *"No problem, {name}."* and captures nothing.
+     Either way the given name is returned and used for this conversation.
 
 ### 7.5 State handlers
 
-- **`_idle()`** — passively `tick()`s until `face_stable()` is true (→ Greeting),
-  sleeping `idle_poll` between polls.
-- **`_greeting()`** — optionally resolves a name via `name_provider` (guarded);
-  greets with **three coordinated beats**, each a `say_with_gesture` that starts
-  the line and gesture together and blocks until both finish:
-  1. `"Hello {name}!"` / `"Hello there!"` + `wave`
-  2. `"Nice to see you."` + `nod`
-  3. `"I can recommend a social event for you."` + `open_arms`
+- **`_idle()`** — passively `tick()`s until `face_stable()` is true (→ Greeting).
+  At that transition it also calls `perception.identify()` (guarded via
+  `getattr`, so stubs without it don't break) purely to **log** whether the
+  stable face is an authorized/known visitor or unrecognized — the actual
+  verify-or-enroll decision happens in `_greeting()`. Sleeps `idle_poll` between
+  polls.
+- **`_greeting()`** — first calls `_identify_or_enroll()` (§7.4 — optional
+  #1/#2: verifies the face, or asks a new visitor's name and, with consent,
+  enrolls it live). If that returns `None` (no camera source wired, or the
+  visitor declined to give a name), falls back to `name_provider()` if one was
+  given. Builds the greeting line:
+  `"Greetings, {name}. {AGENT_NAME} online, at your service."` if a name was
+  resolved, else `"Greetings. {AGENT_NAME} online, at your service."` (`AGENT_NAME`
+  = `"JARVIS"`, from `contracts.py`, §5.1). Then **three coordinated beats**, each
+  a `say_with_gesture` that starts the line and gesture together and blocks until
+  both finish:
+  1. the greeting line above + `wave`
+  2. `"Systems nominal. It's good to see you."` + `nod`
+  3. `"Scanning the local grid for a social event to suit you."` + `open_arms`
   Then `_still_present()`; if the user left → Idle, else → Conversation.
 - **`_conversation()`** — `raw = dialogue.collect_evidence()`, then
   `self.evidence = validate_evidence(raw)` (**the whitelist is applied again here**
   on the robot side, defence in depth). If the user left → Idle, else → Reasoning.
+  (When running with the real dialogue bridge, each question is spoken with a
+  brief, question-length `"talk"` gesture rather than a fixed-length one — see
+  §8.4 — and abusive replies are declined by the dialogue graph itself, §9.5.3,
+  before they ever reach evidence parsing.)
 - **`_reasoning()`** — `say_with_gesture("Let me think about that.", "think")`,
   then `self.result = recommender.recommend(self.evidence) or []`. → Recommendation.
 - **`_recommendation()`**:
@@ -548,8 +676,8 @@ is reset in a `finally`. `stop()` clears `_running`.
     events + tablet image); then `recommender.explain(top_event, self.evidence)`
     (guarded — any exception → empty reason) and speaks it if non-empty; then
     `_wait_for_ack()`. → Farewell.
-- **`_farewell()`** — `say_with_gesture("Have a great time! Goodbye.", "wave")`,
-  then `_reset_interaction()`. → Idle.
+- **`_farewell()`** — `say_with_gesture("Enjoy your evening. {AGENT_NAME} signing
+  off, goodbye.", "wave")`, then `_reset_interaction()`. → Idle.
 
 ### 7.6 Acknowledgement wait
 
@@ -589,30 +717,45 @@ Returns `(sim, client, pepper)`.
 ### 8.3 `build_components(args)` — perception + behaviour + cleanup per source
 
 - **`scripted`** — `ScriptedPerception(stable_after=3, leaves_after=12)` +
-  `ConsoleBehaviour()` + no-op cleanup.
-- **`webcam`** — `HaarFaceDetector(WebcamSource(index))`; wrapped in
-  `ThreadedPerception(preview=True)` iff `--preview`; + `ConsoleBehaviour()`;
-  cleanup = `perception.release`.
-- **`pepper`** — spawns Pepper, `PepperBehaviour(pepper)`, perception =
-  `HaarFaceDetector(PepperCameraSource(pepper))`. Cleanup shuts down behaviour,
-  releases perception, stops the sim.
+  `ConsoleBehaviour()` + no-op cleanup. No camera, so no `FaceRecognizer` is
+  built — face verification/enrollment (§6.7) is simply unavailable in this mode.
+- **`webcam`** — builds a `FaceRecognizer()` (optional #1: verifies against
+  authorized users enrolled under `known_faces/`; fails soft — with nobody
+  enrolled yet it's a no-op and every face is just "unrecognized") and passes it
+  to `HaarFaceDetector(WebcamSource(index), recognizer=FaceRecognizer())`;
+  wrapped in `ThreadedPerception(preview=True)` iff `--preview`; +
+  `ConsoleBehaviour()`; cleanup = `perception.release`.
+- **`pepper`** — spawns Pepper, `PepperBehaviour(pepper)`, one shared
+  `recognizer = FaceRecognizer()`, perception =
+  `HaarFaceDetector(PepperCameraSource(pepper), recognizer=recognizer)`. Cleanup
+  shuts down behaviour, releases perception, stops the sim.
 - **`hybrid`** — Pepper's body in the sim (`PepperBehaviour`) **plus** webcam face
-  detection via `ThreadedPerception(HaarFaceDetector(WebcamSource), preview=True)`.
-  Same cleanup as `pepper`.
+  detection via `ThreadedPerception(HaarFaceDetector(WebcamSource,
+  recognizer=recognizer), preview=True)`, sharing the same `FaceRecognizer`
+  instance built for the `pepper` branch. Same cleanup as `pepper`.
 
 ### 8.4 `_build_real_dialogue(behaviour, base_cleanup, args)` (WP5 wiring)
 
 Wires the LangGraph dialogue service in via the bridge. Locates the `dialogue/`
 directory (sibling of `src/`), and defines:
 
-- `speak(question)` — prints `[Pepper asks]` and calls `behaviour.say(question)`
-  (Pepper voices it).
+- `speak(question)` — prints `[Pepper asks]` and calls
+  `behaviour.say_with_gesture(question, "talk")`. Requirement #6 (conversation
+  gestures): this uses the brief, single-beat `"talk"` gesture (§11.2) rather
+  than the longer `open_arms` swing, because `say_with_gesture` blocks the
+  gesture for exactly as long as the line takes to speak — a long, fixed-length
+  gesture visibly drifted out of sync with these variable-length, LLM-generated
+  questions, whereas the short beat stays in sync regardless of question length.
 - `get_text()` — reads a typed answer from the console (`input("  [you] ")`),
   returns `""` on EOF.
 - `on_heard(text)` — prints `[you said] ...` (used in speech mode).
+- `notify(message)` — prints `[Pepper notifies]` and calls
+  `behaviour.say_with_gesture(message, "nod")` (status/clarification lines, e.g.
+  the Evaluator's default-applied notice or the abuse-filter's "let's keep this
+  friendly" prompt, get a small nod rather than no gesture at all).
 
 Then constructs `DialogueBridge(speak, dialogue_dir, answer_mode=args.answer,
-get_text=get_text, notify=behaviour.say, on_heard=on_heard)`. The returned cleanup
+get_text=get_text, notify=notify, on_heard=on_heard)`. The returned cleanup
 closes the bridge then runs the base cleanup. **If the bridge can't start** (any
 exception), it logs a warning and falls back to `StubDialogueManager(interactive=...)`.
 
@@ -627,7 +770,9 @@ exception), it logs a warning and falls back to `StubDialogueManager(interactive
 5. FSM construction: for `scripted`, use fast polling and a short ack wait
    (`idle_poll=0.05, ack_timeout=2.0`) and default `max_cycles=1`; otherwise
    default construction and unlimited cycles.
-6. `fsm.run(max_cycles=...)` inside a `try/finally` that always runs `cleanup()`.
+6. Prints the startup banner: `"=== {AGENT_NAME} - {AGENT_SLOGAN} (source={args.source})
+   ==="` (both from `contracts.py`, §5.1).
+7. `fsm.run(max_cycles=...)` inside a `try/finally` that always runs `cleanup()`.
 
 Example invocations (from the README):
 
@@ -713,17 +858,32 @@ Constants: `GROQ_BASE_URL = "https://api.groq.com/openai/v1"`,
 
 #### 9.3.2 `GroqQuestionFramer` — conversational question generation
 
-- Constructor: same key/model resolution; `temperature=0.8` (varied phrasing).
+- Constructor: same key/model resolution; `temperature=0.7`.
+- **`_STYLE_HINTS`** — a module-level tuple of six short style directives (e.g.
+  *"Ask with calm, genuine curiosity."*, *"Ask using a brief, natural everyday
+  comparison."*, *"Ask with understated, dry wit — one subtle touch, nothing
+  more."*). One is picked at random (`random.choice`) on **every** `frame()` call
+  and appended to the prompt as `"Style for this question: {style}"`. This is
+  what keeps repeated turns — and repeated runs, since `Router` (§9.5.3) also
+  randomizes which slot is asked next — from converging on the same phrasing;
+  temperature alone tends to still favour one template for a near-identical
+  prompt.
 - **`frame(filled, missing, target, attempt=0, feedback=None) -> str | None`** —
-  a system prompt casts the model as **Pepper, a warm friendly social robot**,
-  told to ask ONE short (~20 words), open, experiential question to learn the
-  `target`, weaving in what's already known, **without** reading out the options,
-  no rigid this-or-that, no yes/no, varied phrasing, never asking about known
-  fields. It's given `Already known: ...`, the `TARGET` + its `SLOT_HINTS` hint,
-  optionally the `Other still-unknown` slots, and optionally a `feedback` note
-  (from the Evaluator reframe or the ConflictResolver either/or). Uses
-  `temperature=0.8, max_tokens=60`. On **any error** returns `None` so the graph
-  falls back to the slot's canned wording.
+  a system prompt casts the model as **"JARVIS, a composed, courteous
+  social-event assistant running on a Pepper robot"**, told to ask ONE short
+  (~20 words), open, experiential question to learn the `target`, weaving in
+  what's already known, **without** reading out the options, no rigid
+  this-or-that, no yes/no. The tone instruction is deliberately restrained:
+  *"Keep the tone professional and understated — at most a subtle, dry touch of
+  wit, used sparingly, never slang or forced jokes."* — plus *"Never reuse the
+  same wording, structure, or example twice; genuinely vary your phrasing and
+  angle every time."* Four few-shot examples set the bar (plain, polite,
+  open-ended — e.g. *"Will it just be you this evening, or is anyone joining
+  you?"*). The user message supplies `Already known: ...`, the `TARGET` + its
+  `SLOT_HINTS` hint, optionally the `Other still-unknown` slots, optionally a
+  `feedback` note (from the Evaluator reframe or the ConflictResolver either/or),
+  and the chosen style hint. Uses `temperature=0.7, max_tokens=60`. On **any
+  error** returns `None` so the graph falls back to the slot's canned wording.
 
 #### 9.3.3 `ScriptedParser` — deterministic, offline keyword matcher
 
@@ -811,7 +971,16 @@ Module-level constants defend against the LLM guessing catch-all values:
 - `_has_no_preference_cue(text)` — true if any cue is a substring of the lowered
   text.
 
-#### 9.5.3 `build_graph(parser, input_provider, framer=None, slots=None, max_attempts=2)`
+**Abusive-language guard (requirement #8, optional).** A second, independent
+module-level constant defends the `AnswerParser` node against hostile input:
+
+- `_ABUSE_WORDS = ("idiot", "stupid", "moron", "shut up")` — a small, deliberately
+  short flagged-word list (kept minimal by design, rather than a full moderation
+  model or a second LLM checkpoint — see §9.5.3).
+- `_is_abusive(text) -> bool` — true if any flagged word is a **substring** of the
+  lowered reply (simple containment check, no NLP).
+
+#### 9.5.3 `build_graph(parser, input_provider, framer=None, slots=None, max_attempts=2, randomize_order=True)`
 
 Builds `by_name` and `order` from the slot list; `missing_of(evidence)` returns
 the slots (in order) not yet in evidence.
@@ -819,19 +988,31 @@ the slots (in order) not yet in evidence.
 **Nodes:**
 
 - **`Router`** — picks the next unknown slot. If none missing → `{done: True,
-  target: None}`. Else → `{done: False, target: missing[0], attempts: 0, feedback:
-  None}` (resets the reframe state for the new slot).
+  target: None}`. Else, `target = random.choice(missing) if randomize_order else
+  missing[0]` → `{done: False, target, attempts: 0, feedback: None}` (resets the
+  reframe state for the new slot). `randomize_order` defaults to `True` in
+  production (`build_graph`/`DialogueManager`, §9.6) so the conversation doesn't
+  always open with the same slot (e.g. always `Budget`) in the same fixed order
+  every run; offline tests that hard-code answers against the canonical order
+  pass `randomize_order=False` for determinism (§16).
 - **`QuestionFramer`** — if a `framer` is present, tries `framer.frame(evidence,
   missing, target, attempt, feedback)` (guarded; on error → `None`); if no LLM
   question, falls back to `by_name[target].question`. Calls
   `input_provider.ask(question)` to get the reply. Appends a turn record
   `{target, q, a, feedback}` to `turn_log`. Returns `last_question`,
   `last_user_text`, `turn_log`.
-- **`AnswerParser`** — `candidate = whitelist(parser.parse(last_user_text,
-  focus_slot=target, question=last_question))`. Then the **weak-value guard**: if
-  `candidate[target]` equals the weak value for that target **and** the user gave
-  no explicit no-preference cue, that entry is dropped (so a vague "great" doesn't
-  become a fake `Either`/`Moderate`). Returns `{candidate}`.
+- **`AnswerParser`** — **first**, requirement #8 (optional): if
+  `_is_abusive(last_user_text)` (the flagged-word substring check above), the
+  reply is **not parsed at all** — `input_provider.notify("Let's keep this
+  friendly — could you rephrase that?")` fires and the node returns
+  `{candidate: {}}`, so nothing abusive can ever reach evidence, and the
+  Evaluator will simply reframe the same target on the next turn as if the
+  answer had been unusable. Otherwise, `candidate = whitelist(parser.parse(
+  last_user_text, focus_slot=target, question=last_question))`, then the **weak-
+  value guard**: if `candidate[target]` equals the weak value for that target
+  **and** the user gave no explicit no-preference cue, that entry is dropped (so
+  a vague "great" doesn't become a fake `Either`/`Moderate`). Returns
+  `{candidate}`.
 - **`ConflictResolver`** — finds slots present in *both* `candidate` and
   `evidence` with **different** values. If none → `{conflict: False}`. Otherwise
   takes the first conflict `slot` (old vs new): commits any *non-conflicting* new
@@ -871,10 +1052,17 @@ already filled — so the conversation naturally shortens.
 ### 9.6 `manager.py` — the WP2 entry point
 
 `DialogueManager(parser, input_provider, framer=None, slots=None, max_clarify=2,
-recursion_limit=100)` builds and compiles the graph. `collect_evidence()` invokes
-the graph from `initial_state()` with a `{"recursion_limit": 100}` config and
-returns `final["evidence"]`. `run_verbose()` returns the full final state
-(evidence + `turn_log`) for the CLI/debugging.
+recursion_limit=100, randomize_order=True)` builds and compiles the graph
+(passing `randomize_order` through to `build_graph`, §9.5.3). `collect_evidence()`
+invokes the graph from `initial_state()` with a `{"recursion_limit":
+recursion_limit}` config and returns `final["evidence"]`. `run_verbose()` returns
+the full final state (evidence + `turn_log`) for the CLI/debugging.
+
+> `recursion_limit` defaults to `100` rather than LangGraph's stock `25`:
+> `randomize_order=True` means a run can, by chance, revisit a slot's
+> reframe/default cycle several times across all six slots before finishing, and
+> a too-low limit (e.g. `5`) can trip `GraphRecursionError` on an unlucky ordering
+> even though the graph itself is making normal progress.
 
 ### 9.7 `asr.py` — local speech-to-text (WP5, on-device)
 
@@ -1153,11 +1341,17 @@ Speech is queued and spoken on a dedicated **worker thread** so it can run
 alongside gestures. Backends in order of preference (override with `TTS_BACKEND`):
 
 - **`_EdgeBackend`** (`edge-tts`) — Microsoft Edge neural voices (natural
-  prosody). Needs internet + `edge_tts` + `playsound`. Voice from `TTS_VOICE`
-  (default `en-US-AriaNeural`). `speak(text)` synthesises to a temp `.mp3` via
-  `edge_tts.Communicate(text, voice).save(...)` inside `asyncio.run`, plays it,
-  and always removes the temp file. `try_create()` returns `None` if `edge_tts`
-  or `playsound` is missing.
+  prosody). Needs internet + `edge_tts` + `playsound`. Constructor takes
+  `(voice, rate="+0%", pitch="+0Hz")`; `try_create()` resolves them from
+  `TTS_VOICE` (default `en-GB-RyanNeural`), `TTS_RATE` (default `-8%`), and
+  `TTS_PITCH` (default `-5Hz`) — a slightly slowed, slightly lowered tuning of
+  the stock Ryan voice, chosen (over cloning any specific real voice, which was
+  explicitly ruled out) as the closest legitimate match to the agent's intended
+  composed, measured character. `speak(text)` synthesises to a temp `.mp3` via
+  `edge_tts.Communicate(text, self.voice, rate=self.rate,
+  pitch=self.pitch).save(...)` inside `asyncio.run`, plays it, and always removes
+  the temp file. `try_create()` returns `None` if `edge_tts` or `playsound` is
+  missing.
 - **`_Pyttsx3Backend`** (`pyttsx3`) — offline SAPI5/espeak fallback (more
   monotone, always available). Creates a **fresh engine per utterance** (reliable
   across repeated calls, avoiding the "run loop already started" issue).
@@ -1193,7 +1387,7 @@ themselves.
 
 **Gestures:**
 - `gesture(name)` — looks up the handler for `wave`/`nod`/`think`/`present`/
-  `open_arms`; unknown names print a "no joint mapping — skipped" note. Waits for
+  `open_arms`/`talk`; unknown names print a "no joint mapping — skipped" note. Waits for
   any previous gesture to finish (`wait_for_gesture`), then launches the handler on
   a **daemon thread** (returns immediately so it plays alongside speech). Handler
   exceptions are caught and logged.
@@ -1219,11 +1413,24 @@ speed)`, all times in seconds):
 - **`_present_gesture`** — open-palm presentation: right arm extended forward
   (`RShoulderPitch=0.5`, `RShoulderRoll=-0.2`, `RElbowRoll=0.4`, `RElbowYaw=0.5`),
   `openHand("RHand")` (guarded), sleep 1.5, `_relax_arms`.
-- **`_open_arms`** — a conversational two-handed gesture: forearms raised so the
-  open hands sit near the shoulders with elbows down (`RShoulderPitch/LShoulderPitch=1.0`,
-  rolls ∓0.15, elbow rolls ±1.5, elbow yaws ±0.3), open both hands, sleep 0.6;
-  then a few small up/down swings of both shoulders (0.9↔1.05, 0.3 s each), close
-  both hands, `_relax_arms`.
+- **`_open_arms`** — a two-handed gesture used for the third greeting beat:
+  forearms raised so the open hands sit near the shoulders with elbows down
+  (`RShoulderPitch/LShoulderPitch=1.0`, rolls ∓0.15, elbow rolls ±1.5, elbow yaws
+  ±0.3), open both hands, sleep 0.6; then a few small up/down swings of both
+  shoulders (0.9↔1.05, 0.3 s each), close both hands, `_relax_arms`. Total
+  duration ≈3.2 s.
+- **`_talk`** (requirement #6, optional) — a brief single-beat gesture used for
+  each conversation question: raise both arms (0.35 s speed), open the right
+  hand, sleep 0.45 s, close the right hand, `_relax_arms`. Total duration
+  ≈1.25 s. This exists specifically because `_open_arms`'s ≈3.2 s swing drifted
+  visibly out of sync with the dialogue's LLM-generated questions, which vary in
+  length turn to turn — `say_with_gesture` blocks the gesture for exactly as long
+  as the line takes to speak, so a fixed ≈3.2 s gesture either finished early
+  (leaving Pepper motionless while still talking) or ran long past a short
+  question. `_talk` is short enough that its natural variance in perceived timing
+  stays small regardless of question length, and `main.py`'s dialogue `speak()`
+  callback (§8.4) uses it in place of `open_arms` specifically for conversation
+  questions; the greeting still uses `open_arms` for its third beat.
 - **`_relax_arms`** — return to a neutral rest pose (`ShoulderPitch=1.4`, rolls
   ∓0.1, elbow rolls ±0.5), sleep 0.8.
 
@@ -1238,6 +1445,16 @@ qiBullet exposes Pepper's `Tablet_frame` link but no high-level tablet API, so t
 helper attaches a thin textured panel to that link and swaps its texture to the
 recommended event's image. If the simulator path is unavailable, it falls back to
 an OpenCV window.
+
+**AVIF decode support.** Two of the eight event images (`workshop.avif`,
+`food.avif`) are AVIF files, which neither stock Pillow nor OpenCV can decode —
+both silently fail to open them, so every conversion path below falls through
+and nothing renders, even though `show_event()` still returns a truthy path
+(the file exists on disk; only the *decode* fails). The module therefore
+imports `pillow_avif` (from `pillow-avif-plugin`, §4.2/§18) at the top,
+guarded in a `try/except` so its absence degrades gracefully rather than
+crashing: importing it registers an AVIF decoder with `PIL.Image.open`, which
+both `_make_tablet_texture` and `_convert_with_pillow` (below) rely on.
 
 **`EVENT_IMAGE_FILES`** — maps each event to its image filename in `imgs/`:
 Museum→`mueseum.jpg` (kept to match the existing filename), Concert→`concert.jpg`,
@@ -1385,39 +1602,55 @@ end-to-end from day one.
 
 A full `--source hybrid --dialogue real --answer speech` encounter:
 
-1. **Startup** — `main.py` spawns Pepper in qiBullet, builds `PepperBehaviour`
-   (TTS worker + tablet display) and a `ThreadedPerception(HaarFaceDetector(
-   WebcamSource))` preview. `_build_real_dialogue` spawns the dialogue service via
+1. **Startup** — `main.py` spawns Pepper in qiBullet, builds a shared
+   `FaceRecognizer()` (§6.7), `PepperBehaviour` (TTS worker + tablet display), and
+   a `ThreadedPerception(HaarFaceDetector(WebcamSource, recognizer=recognizer))`
+   preview. `_build_real_dialogue` spawns the dialogue service via
    `DialogueBridge`; the service emits `ready`. `BayesianRecommender` builds the
-   network. The FSM starts in **Idle**.
+   network. Prints the `"=== JARVIS - At your service. ... (source=hybrid) ==="`
+   banner. The FSM starts in **Idle**.
 2. **Idle → Greeting** — the background perception thread fills its window; once ≥4
-   of 5 recent frames contain a face, `face_stable()` flips true and the FSM enters
-   **Greeting**.
-3. **Greeting** — three `say_with_gesture` beats (wave / nod / open_arms), each
-   speaking (neural TTS) and moving concurrently and blocking until both finish.
-   Then a presence check; if the user's still there → **Conversation**.
+   of 5 recent frames contain a face, `face_stable()` flips true. `_idle()` logs
+   whether `perception.identify()` recognized the face (informational only) and
+   the FSM enters **Greeting**.
+3. **Greeting** — `_identify_or_enroll()` runs first (§7.4): if the face matches
+   someone in `known_faces/`, their name comes back immediately; otherwise JARVIS
+   asks *"I don't think we've met yet. What's your name?"*, then asks consent to
+   remember the face, and — if granted — captures ~15 live samples through the
+   same perception object and retrains the recognizer on the spot. Either way a
+   name (or `None`) comes out, feeding the personalised or generic greeting line.
+   Three `say_with_gesture` beats follow (wave / nod / open_arms), each speaking
+   (neural TTS, tuned Ryan voice) and moving concurrently and blocking until both
+   finish. Then a presence check; if the user's still there → **Conversation**.
 4. **Conversation** — `dialogue.collect_evidence()` drives the bridge: the service
-   runs the LangGraph. Per turn: `Router` picks the next empty slot →
-   `QuestionFramer` asks a Groq-generated open question → the bridge `speak`s it
-   (Pepper's voice) → the robot sends `{"spoken": true}` → the service records the
-   mic and transcribes with **local Whisper** (`heard`) → `AnswerParser` runs the
-   Groq parser (with the weak-value guard) → `ConflictResolver` handles
-   contradictions (re-open + either/or) → `Evaluator` commits / reframes / defaults.
-   One rich reply may fill several slots. When all six are filled (or defaulted),
-   `Finish` returns the evidence; the service emits `{"event": "evidence", ...}`;
-   the bridge returns it. The FSM applies `validate_evidence` again.
+   runs the LangGraph. Per turn: `Router` picks the next empty slot **at random**
+   (so the opening question isn't always the same one run to run) →
+   `QuestionFramer` asks a Groq-generated open question, nudged by a randomly
+   chosen style hint toward a composed, understated tone → the bridge's `speak()`
+   callback voices it with the brief, question-length-synced `"talk"` gesture → the
+   robot sends `{"spoken": true}` → the service records the mic and transcribes
+   with **local Whisper** (`heard`) → `AnswerParser` first checks the raw reply
+   against the small abuse-word list (§9.5.2); an abusive reply short-circuits to
+   a polite "let's keep this friendly" notification (spoken with a `"nod"` gesture)
+   instead of being parsed. Otherwise it runs the Groq parser (with the
+   weak-value guard) → `ConflictResolver` handles contradictions (re-open +
+   either/or) → `Evaluator` commits / reframes / defaults. One rich reply may fill
+   several slots. When all six are filled (or defaulted), `Finish` returns the
+   evidence; the service emits `{"event": "evidence", ...}`; the bridge returns
+   it. The FSM applies `validate_evidence` again.
 5. **Reasoning** — `say_with_gesture("Let me think about that.", "think")`; the
    `BayesianRecommender` runs LazyPropagation over the (partial) evidence and
    returns the 8 events ranked.
 6. **Recommendation** — `say_with_gesture("Based on what you told me...",
    "present")`; `behaviour.present(result)` shows the top event's image on the
-   tablet panel (which tracks the `Tablet_frame` link) and prints the top-3;
-   `recommender.explain(top, evidence)` reads back the argmax latent factors into a
-   "because..." sentence, which Pepper speaks. Then `_wait_for_ack()` waits up to
-   `ack_timeout` or until the user leaves.
-7. **Farewell** — `say_with_gesture("Have a great time! Goodbye.", "wave")`;
-   `_reset_interaction()` clears the tablet, evidence, result, and the perception
-   window. Back to **Idle** for the next person.
+   tablet panel (which tracks the `Tablet_frame` link, decoding AVIF sources via
+   `pillow-avif-plugin` where needed) and prints the top-3; `recommender.explain(
+   top, evidence)` reads back the argmax latent factors into a "because..."
+   sentence, which JARVIS speaks. Then `_wait_for_ack()` waits up to `ack_timeout`
+   or until the user leaves.
+7. **Farewell** — `say_with_gesture("Enjoy your evening. JARVIS signing off,
+   goodbye.", "wave")`; `_reset_interaction()` clears the tablet, evidence,
+   result, and the perception window. Back to **Idle** for the next person.
 
 At every step, if `_still_present()` reports the user gone, the FSM short-circuits
 back to Idle.
@@ -1440,7 +1673,12 @@ max-cycles/verbose).
 
 `--source {webcam,pepper}`, `--camera-index N`, `--headless`, `--no-window`.
 
-### 15.4 Environment variables
+### 15.4 CLI — `enroll_face.py`
+
+`--name NAME` (required), `--count N` (default `20`), `--camera-index N`
+(default `0`), `--interval SECONDS` (default `0.3`). See §6.8.
+
+### 15.5 Environment variables
 
 **Dialogue / LLM:**
 
@@ -1457,7 +1695,9 @@ max-cycles/verbose).
 | Variable | Default | Meaning |
 |---|---|---|
 | `TTS_BACKEND` | `auto` | `edge` (neural) · `pyttsx3` (offline) · `none` |
-| `TTS_VOICE` | `en-US-AriaNeural` | any Edge neural voice |
+| `TTS_VOICE` | `en-GB-RyanNeural` | any Edge neural voice |
+| `TTS_RATE` | `-8%` | Edge neural speaking-rate offset (e.g. `-8%`, `+10%`) |
+| `TTS_PITCH` | `-5Hz` | Edge neural pitch offset (e.g. `-5Hz`, `+10Hz`) |
 
 **Local Whisper ASR (`asr.py`):**
 
@@ -1518,7 +1758,10 @@ pipeline exercisable deterministically.
 | Recommender unavailable (pyAgrum/etc.) | fall back to `StubRecommender` | `main.main` |
 | Weak/empty recommendation | present top-3, or apologise gracefully if empty | `state_machine._recommendation` |
 | Tablet surface unavailable | fall back to an OpenCV preview window | `EventImageDisplay` |
-| Unusual image format (`.avif`) | convert to PNG via Pillow/OpenCV | `EventImageDisplay._make_tablet_texture` |
+| AVIF image format (`workshop.avif`, `food.avif`) | decode via `pillow-avif-plugin` registering an AVIF opener with PIL (stock Pillow/OpenCV can't decode AVIF at all) | `EventImageDisplay` (module-level import), `_make_tablet_texture` |
+| Unrecognized visitor face | ask for a name and explicit consent before enrolling; declining is honoured (name used for that conversation only, nothing captured) | `state_machine._identify_or_enroll` |
+| No camera source wired (e.g. `--source scripted`) | face verification/enrollment is simply skipped (`recognizer` is `None`) | `state_machine._identify_or_enroll` |
+| Abusive language in a reply | declined and the person is asked to rephrase, rather than being parsed as evidence | `dialogue.graph.AnswerParser` / `_is_abusive` |
 | User walks away at any point | `_still_present()` short-circuits back to Idle | `state_machine` |
 | Ctrl-C | caught for a clean shutdown | `InteractionFSM.run` |
 
@@ -1526,10 +1769,13 @@ pipeline exercisable deterministically.
 
 ## 18. Dependency reference
 
-**Robot side (`Project/pyproject.toml`, Python 3.8):** `opencv-python`, `numpy`,
-`qibullet`, `pybullet` (WP1); `pyagrum` (WP3); `pyttsx3`, `edge-tts`, `playsound`,
-`threadpool` (WP4); `pytest` (dev). Optional at runtime: `Pillow` (used by the
-tablet texture converter if present).
+**Robot side (`Project/pyproject.toml`, Python 3.8):** `opencv-contrib-python`
+(the *contrib* build, for `cv2.face` LBPH face recognition), `numpy`, `qibullet`,
+`pybullet` (WP1); `pyagrum` (WP3); `pyttsx3`, `edge-tts`, `playsound`,
+`threadpool`, `pillow-avif-plugin` (AVIF decode for two event images) (WP4);
+`pytest` (dev). Optional at runtime: `Pillow` (used by the tablet texture
+converter if present; also a transitive dependency `pillow-avif-plugin` builds
+on).
 
 **Dialogue side (`Project/dialogue/pyproject.toml`, Python 3.11):** `langgraph`,
 `openai`, `python-dotenv` (core); `SpeechRecognition`, `pyaudio`, `faster-whisper`,
@@ -1558,6 +1804,19 @@ reasoning, speech recognition, and (with pyttsx3) speech synthesis — runs loca
 - **LazyPropagation** — pyAgrum's exact inference engine used to compute the
   posterior over events (and the latent argmaxes for the explanation).
 - **Framer** — the LLM component that generates each next question conversationally.
+- **LBPH** — Local Binary Patterns Histograms; the on-device face-recognition
+  algorithm (`cv2.face.LBPHFaceRecognizer_create()`) `FaceRecognizer` uses to
+  verify a detected face against enrolled photos. Its confidence score is a
+  distance (lower = better match), the inverse of a typical classifier score.
+- **Consent-based enrollment** — the live flow where JARVIS asks an unrecognized
+  visitor's name and explicit permission before capturing and saving face
+  samples; declining is honoured and nothing is captured.
+- **Abuse filter** — the small flagged-word substring check (`_ABUSE_WORDS` /
+  `_is_abusive`) that stops an abusive reply from ever reaching the LLM parser or
+  evidence, asking the person to rephrase instead.
+- **Style hint** — one of a small set of tone directives randomly chosen each
+  `GroqQuestionFramer.frame()` call, so repeated questions don't converge on the
+  same phrasing/angle.
 - **Bridge** — the subprocess + JSON-over-stdio link between the 3.8 robot and the
   3.11 dialogue service.
 - **WP1–WP5** — the five work packages: perception/FSM, dialogue, recommender,

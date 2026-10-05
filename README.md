@@ -24,28 +24,34 @@ The system combines three ideas:
 ## What a conversation looks like
 
 ```
-(person steps into view)
-Pepper:  Hello there!                         (waves)
-Pepper:  Nice to see you.                      (nods)
-Pepper:  I can recommend a social event for you. (opens both arms)
+(person steps into view — face checked against known visitors)
+JARVIS:  Greetings, Sunesh. JARVIS online, at your service.     (waves)
+JARVIS:  Systems nominal. It's good to see you.                 (nods)
+JARVIS:  Scanning the local grid for a social event to suit you. (opens both arms)
 
-Pepper:  What kind of evening would actually make you feel recharged?
-You:     something pretty laid back, not a big crowd
-Pepper:  And when do you usually like to head out — daytime, or later on?
-You:     evenings mostly
-   ... (a few more open questions) ...
+JARVIS:  Will it just be you this evening, or is anyone joining you?
+You:     just me, keeping it simple
+JARVIS:  What kind of pace suits you tonight — relaxed, or something livelier?
+You:     pretty relaxed
+   ... (a few more open questions — which one comes first, and how each is
+        phrased, varies from run to run) ...
 
-Pepper:  Let me think about that.             (thinking pose)
-Pepper:  Based on what you told me, I recommend the following.
+JARVIS:  Let me think about that.             (thinking pose)
+JARVIS:  Based on what you told me, I recommend the following.  (presents)
             1. Museum        34%
             2. Workshop      19%
             3. Food          15%
-Pepper:  I suggest Museum because your preferences point to a cultural venue
+JARVIS:  I suggest Museum because your preferences point to a cultural venue
          with an intimate vibe and a low-key feel.
          (the Museum image appears on Pepper's tablet)
 
-Pepper:  Have a great time! Goodbye.          (waves)
+JARVIS:  Enjoy your evening. JARVIS signing off, goodbye.       (waves)
 ```
+
+If the visitor isn't recognized, greeting is preceded by a short name-and-consent
+exchange (see *Face verification* below) instead of the personalised line. If a
+reply during the conversation contains abusive language, JARVIS declines to
+parse it and asks the person to rephrase rather than engaging with it.
 
 ---
 
@@ -62,9 +68,15 @@ Idle → Greeting → Conversation → Reasoning → Recommendation → Farewell
 
 - **Idle** — passively watches the camera until a face is *stably* present for
   several consecutive frames (smoothing avoids false triggers).
-- **Greeting** — three coordinated beats; each spoken line starts together with
-  its gesture and the robot waits for both to finish (wave → nod → open arms).
-- **Conversation** — runs the dialogue to collect the user's preferences.
+- **Greeting** — first verifies the visitor's face (see *Face verification*
+  below); if recognized, the greeting is personalised by name, otherwise
+  JARVIS asks for one (and, with consent, learns the face for next time).
+  Three coordinated beats follow — each spoken line starts together with its
+  gesture and the robot waits for both to finish (wave → nod → open arms).
+- **Conversation** — runs the dialogue to collect the user's preferences; each
+  question is spoken with a brief gesture timed to its own length, and
+  abusive replies are declined with a request to rephrase instead of being
+  parsed.
 - **Reasoning** — a "let me think" pose while the Bayesian network ranks events.
 - **Recommendation** — speaks the top events, shows the winning event's image on
   the tablet, and explains the reasoning.
@@ -83,6 +95,34 @@ with a looser threshold so brief dropouts don't end the interaction. Perception
 can run on a background thread so the live preview window stays responsive while
 the robot is busy talking.
 
+**Face verification and consent-based enrollment.** When a webcam or Pepper
+camera source is active, every detected face is also checked against a small
+on-device recognizer (`cv2.face` LBPH — Local Binary Patterns Histograms, from
+`opencv-contrib-python`) trained on photos under
+`src/perception/known_faces/<name>/`. A confident match (LBPH distance ≤ 75 —
+empirically ~0 for a genuine match vs. ~180 for a stranger) identifies the
+person and personalises the greeting by name.
+
+If the face isn't recognized, JARVIS asks for a name and explicit consent
+before touching the camera any further:
+
+```
+JARVIS:  I don't think we've met yet. What's your name?
+You:     Alex
+JARVIS:  Nice to meet you, Alex. Would it be okay if I remember your face
+         for next time?
+You:     yes
+         (captures ~15 samples from the live feed, retrains, and confirms)
+JARVIS:  Great, I'll remember you next time, Alex!
+```
+
+Declining ("no") is honoured — JARVIS uses the given name for that
+conversation only and captures nothing. Enrollment reuses the camera feed the
+FSM is already reading (no second webcam connection is opened), and the saved
+photos never leave the machine: `src/perception/known_faces/` is
+git-ignored. People can also be pre-enrolled offline ahead of time — see
+*Pre-enrolling a face* under Running, below.
+
 ### 3. The dialogue
 
 Instead of reading a fixed script, the dialogue is a small **graph of named
@@ -90,13 +130,19 @@ agents** that decide what to ask next and how to interpret the answer:
 
 ![Dialogue manager graph](docs/dialogue_graph.png)
 
-- **Router** — picks the next preference still unknown (or finishes).
+- **Router** — picks the next preference still unknown, in random order each
+  run (or finishes) — so the conversation doesn't always open with the same
+  question.
 - **QuestionFramer** — asks about it with an *open, experiential* question
   generated by the language model (e.g. "what kind of evening would recharge
-  you?") rather than listing options. On a retry it rephrases.
+  you?") rather than listing options. A randomly chosen style hint (calm
+  curiosity, a brief everyday comparison, an occasional understated touch of
+  dry wit, …) keeps the phrasing and angle from converging on the same
+  template across turns and runs. On a retry it rephrases.
 - **AnswerParser** — maps the free-form reply to one or more concrete
-  preferences, and ignores vague or merely agreeable replies ("great", "sure")
-  instead of guessing.
+  preferences, ignores vague or merely agreeable replies ("great", "sure")
+  instead of guessing, and declines to parse abusive language — asking the
+  person to rephrase instead of engaging with it.
 - **ConflictResolver** — if a new answer contradicts something already decided,
   it re-opens that preference and asks a short either/or question to settle it.
 - **Evaluator** — judges whether the answer was usable: commit and move on,
@@ -155,7 +201,9 @@ priors.
   picture is shown on a thin textured panel pinned to Pepper's tablet (it tracks
   the tablet link as the robot moves), and is cleared at the end of each
   interaction. If the simulator surface isn't available it falls back to a
-  desktop preview window.
+  desktop preview window. Source photos are decoded with Pillow — including
+  the two AVIF images (`workshop.avif`, `food.avif`), via
+  `pillow-avif-plugin`, since neither stock Pillow nor OpenCV read AVIF.
 
 ### 6. Two runtimes, one agent
 
@@ -175,10 +223,12 @@ started, the robot falls back to a console stand-in so a demo still runs.
 Social-Event-Recommendation-Agent-on-Pepper-using-LangGraph-and-pyAgrum-BayesNet/
 ├── src/                         # robot side (Python 3.8)
 │   ├── main.py                  # entry point / orchestrator
-│   ├── state_machine.py         # six-state interaction loop
-│   ├── contracts.py             # shared preference/result types + interfaces
+│   ├── state_machine.py         # six-state interaction loop + face verify/enroll
+│   ├── contracts.py             # shared preference/result types + interfaces + agent name/slogan
 │   ├── dialogue_bridge.py       # client that drives the dialogue subprocess
-│   ├── perception/              # Haar face detection + camera sources
+│   ├── enroll_face.py           # standalone CLI to pre-enroll a face offline
+│   ├── perception/              # Haar face detection, camera sources, LBPH face recognizer
+│   │   └── known_faces/         # enrolled face photos (local-only, git-ignored)
 │   ├── behaviour/               # speech (TTS), gestures, tablet image display
 │   └── recommender/             # pyAgrum Bayesian network
 ├── dialogue/                    # dialogue service (Python 3.11, own uv project)
@@ -261,6 +311,21 @@ Key options:
 | `--preview` | flag | show the webcam window with detection boxes |
 | `--interactive` | flag | ask on the console instead of using defaults (stub dialogue) |
 
+### Pre-enrolling a face (optional)
+
+Face verification also works entirely live — JARVIS asks for a name and
+consent the first time it sees someone new (see *Face verification* above) —
+but a person can also be pre-enrolled offline ahead of time:
+
+```bash
+uv run python src/enroll_face.py --name Alex
+uv run python src/enroll_face.py --name Alex --count 30 --camera-index 1
+```
+
+Samples are saved to `src/perception/known_faces/<name>/` (git-ignored) and
+are picked up automatically the next time `--source webcam/pepper/hybrid`
+runs.
+
 ### Voice configuration (environment variables)
 
 | Variable | Default | Notes |
@@ -294,10 +359,12 @@ and, if `LANGSMITH_*` is configured, every run is traced at
 ## Tech stack
 
 - **qiBullet / PyBullet** — Pepper simulation, joint control, tablet texture
-- **OpenCV** — Haar-cascade face detection
+- **OpenCV (opencv-contrib-python)** — Haar-cascade face detection and
+  `cv2.face` LBPH face recognition (verification + consent-based enrollment)
 - **LangGraph** — the multi-agent dialogue graph
 - **Groq** (Llama 3.3) — language understanding and question framing
 - **faster-whisper** — local, on-device speech-to-text (GPU/CPU)
 - **edge-tts / pyttsx3** — neural and offline speech output
+- **Pillow + pillow-avif-plugin** — event tablet image decoding (incl. AVIF)
 - **pyAgrum** — the explainable Bayesian recommendation network
 - **uv** — environment and dependency management

@@ -17,6 +17,13 @@ from typing import Optional
 
 log = logging.getLogger("wp4.display")
 
+try:
+    # Registers an AVIF decoder with PIL's Image.open (workshop.avif, food.avif
+    # aren't readable by stock Pillow or OpenCV without it).
+    import pillow_avif  # noqa: F401
+except Exception:
+    pass
+
 
 EVENT_IMAGE_FILES = {
     "Museum": "mueseum.jpg",  # kept to match the existing filename
