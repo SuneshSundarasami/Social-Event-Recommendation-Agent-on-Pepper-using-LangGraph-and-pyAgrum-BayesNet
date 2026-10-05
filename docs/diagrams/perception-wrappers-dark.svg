@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="296" viewBox="0 0 1000 296" font-family="Arial, Helvetica, sans-serif">
+<title>Perception wrappers. Layers that add threading and a live preview without the state machine noticing</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-navy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A4468"/><stop offset="1" stop-color="#0A2A43"/></linearGradient><linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EE5243"/><stop offset="1" stop-color="#D93A2B"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#E6EDF3"/></marker><marker id="m-0A64B0" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#58A6FF"/></marker><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient><linearGradient id="g-amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C04A"/><stop offset="1" stop-color="#EDA923"/></linearGradient></defs>
+<rect x="30.0" y="92.0" width="150.0" height="80.0" rx="12.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="105.0" y="128.7" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">InteractionFSM</text>
+<text x="105.0" y="145.3" font-size="12.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">polls tick()</text>
+<rect x="290.0" y="30.0" width="420.0" height="206.0" rx="20.0" fill="#0C1D33" stroke="#8DB8DE" stroke-width="1.8"/>
+<text x="312.0" y="58.0" font-size="14.5" fill="#79C0FF" text-anchor="start" font-weight="bold">ThreadedPerception</text>
+<text x="312.0" y="77.0" font-size="12.0" fill="#9DA7B3" text-anchor="start">own capture thread at 15 fps · lock-guarded cached state</text>
+<rect x="316.0" y="94.0" width="368.0" height="124.0" rx="16.0" fill="#2D1215" stroke="#F0A79E" stroke-width="1.8"/>
+<text x="338.0" y="122.0" font-size="13.5" fill="#FF7B72" text-anchor="start" font-weight="bold">HaarFaceDetector</text>
+<text x="338.0" y="141.0" font-size="12.0" fill="#9DA7B3" text-anchor="start">5-frame smoothing · optional FaceRecognizer</text>
+<rect x="415.0" y="156.0" width="170.0" height="44.0" rx="12.0" fill="url(#g-red)" stroke="#B8301F" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="500.0" y="182.9" font-size="13.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">WebcamSource</text>
+<path d="M180.0,132.0 L290.0,132.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="235.0" y="122.0" font-size="11.0" fill="#E6EDF3" text-anchor="middle" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">cheap cached reads</text>
+<rect x="760.0" y="34.0" width="210.0" height="168.0" rx="10.0" fill="#1E242B" stroke="#0F1317" stroke-width="1.2" filter="url(#shadow)"/>
+<rect x="760.0" y="34.0" width="210.0" height="24.0" rx="10.0" fill="#2E353D"/>
+<rect x="760.0" y="48.0" width="210.0" height="10.0" rx="0.0" fill="#2E353D"/>
+<circle cx="774.0" cy="46.0" r="4.5" fill="#FF5F57"/>
+<circle cx="788.0" cy="46.0" r="4.5" fill="#FEBC2E"/>
+<circle cx="802.0" cy="46.0" r="4.5" fill="#28C840"/>
+<text x="881.0" y="50.0" font-size="11.0" fill="#C9D1D9" text-anchor="middle">preview</text>
+<circle cx="865.0" cy="122.0" r="26" fill="#5B6570"/>
+<path d="M813.0,200.0 Q865.0,134.0 917.0,200.0 Z" fill="#5B6570"/>
+<rect x="825.0" y="84.0" width="80.0" height="82.0" rx="4.0" fill="none" stroke="#34C759" stroke-width="2.5"/>
+<text x="772.0" y="78.0" font-size="12.0" fill="#34C759" text-anchor="start" font-weight="bold">STABLE</text>
+<path d="M710.0,132.0 L760.0,132.0" fill="none" stroke="#58A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-0A64B0)"/>
+<text x="735.0" y="123.0" font-size="11.0" fill="#58A6FF" text-anchor="middle" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">draws</text>
+<rect x="760.0" y="218.0" width="64.0" height="24.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2"/>
+<text x="792.0" y="234.0" font-size="11.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">STABLE</text>
+<rect x="832.0" y="218.0" width="59.5" height="24.0" rx="12.0" fill="url(#g-amber)" stroke="#C98A0C" stroke-width="1.2"/>
+<text x="861.7" y="234.0" font-size="11.0" fill="#3A2A00" text-anchor="middle" font-weight="bold">present</text>
+<rect x="899.5" y="218.0" width="71.5" height="24.0" rx="12.0" fill="url(#g-red)" stroke="#B8301F" stroke-width="1.2"/>
+<text x="935.2" y="234.0" font-size="11.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">searching</text>
+<text x="30.0" y="272.0" font-size="12.0" fill="#9DA7B3" text-anchor="start" font-style="italic">ScriptedPerception replaces all of this in --source scripted: the visitor arrives at tick 3 and leaves at tick 12.</text>
+</svg>

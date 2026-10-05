@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="676" viewBox="0 0 1000 676" font-family="Arial, Helvetica, sans-serif">
+<title>Run modes. How src/main.py assembles the system for each --source, with a fallback at every step</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-navy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A4468"/><stop offset="1" stop-color="#0A2A43"/></linearGradient><linearGradient id="g-grey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9AA0A6"/><stop offset="1" stop-color="#7D838A"/></linearGradient><linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EE5243"/><stop offset="1" stop-color="#D93A2B"/></linearGradient><linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#167CCC"/><stop offset="1" stop-color="#0262AB"/></linearGradient><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient><linearGradient id="g-amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C04A"/><stop offset="1" stop-color="#EDA923"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#E6EDF3"/></marker><marker id="m-C62828" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#F85149"/></marker><linearGradient id="g-darkgreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25995D"/><stop offset="1" stop-color="#1A7B47"/></linearGradient><marker id="m-7A8088" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#8B949E"/></marker></defs>
+<rect x="351.5" y="18.0" width="297.0" height="36.0" rx="18.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="500.0" y="40.7" font-size="13.0" fill="#FFFFFF" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-weight="bold">uv run python src/main.py --source …</text>
+<line x1="30.0" y1="83.0" x2="970.0" y2="83.0" stroke="#30363D" stroke-width="1.0"/>
+<text x="30.0" y="76.0" font-size="12.5" fill="#9DA7B3" text-anchor="start" font-style="italic" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">① --source decides where faces come from and whether Pepper is spawned</text>
+<rect x="30.0" y="124.0" width="220.0" height="126.0" rx="12.0" fill="#161B22" stroke="#3D444D" stroke-width="1.6" filter="url(#shadow)"/>
+<rect x="30.0" y="98.0" width="220.0" height="46.0" rx="12.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="140.0" y="126.2" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">--source scripted</text>
+<text x="140.0" y="174.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">ScriptedPerception</text>
+<text x="140.0" y="195.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">ConsoleBehaviour</text>
+<text x="140.0" y="237.0" font-size="12.0" fill="#9DA7B3" text-anchor="middle" font-style="italic">no camera, no simulator</text>
+<rect x="270.0" y="124.0" width="220.0" height="126.0" rx="12.0" fill="#161B22" stroke="#F0A79E" stroke-width="1.6" filter="url(#shadow)"/>
+<rect x="270.0" y="98.0" width="220.0" height="46.0" rx="12.0" fill="url(#g-red)" stroke="#B8301F" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="380.0" y="126.2" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">--source webcam</text>
+<text x="380.0" y="174.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">HaarFaceDetector(webcam)</text>
+<text x="380.0" y="195.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">+ FaceRecognizer</text>
+<text x="380.0" y="216.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">ConsoleBehaviour</text>
+<text x="380.0" y="237.0" font-size="12.0" fill="#9DA7B3" text-anchor="middle" font-style="italic">local webcam, no simulator</text>
+<rect x="510.0" y="124.0" width="220.0" height="126.0" rx="12.0" fill="#161B22" stroke="#8DB8DE" stroke-width="1.6" filter="url(#shadow)"/>
+<rect x="510.0" y="98.0" width="220.0" height="46.0" rx="12.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="620.0" y="126.2" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">--source pepper</text>
+<text x="620.0" y="174.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">HaarFaceDetector(Pepper cam)</text>
+<text x="620.0" y="195.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">+ FaceRecognizer</text>
+<text x="620.0" y="216.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">PepperBehaviour</text>
+<text x="620.0" y="237.0" font-size="12.0" fill="#9DA7B3" text-anchor="middle" font-style="italic">Pepper spawned in qiBullet</text>
+<rect x="750.0" y="124.0" width="220.0" height="126.0" rx="12.0" fill="#161B22" stroke="#8CCB88" stroke-width="1.6" filter="url(#shadow)"/>
+<rect x="750.0" y="98.0" width="220.0" height="46.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="860.0" y="126.2" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">--source hybrid</text>
+<text x="860.0" y="174.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">ThreadedPerception(webcam)</text>
+<text x="860.0" y="195.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">+ FaceRecognizer + preview</text>
+<text x="860.0" y="216.0" font-size="11.8" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace">PepperBehaviour</text>
+<text x="860.0" y="237.0" font-size="12.0" fill="#9DA7B3" text-anchor="middle" font-style="italic">Pepper spawned in qiBullet</text>
+<rect x="881.5" y="88.2" width="73.0" height="19.5" rx="9.8" fill="url(#g-amber)" stroke="#0D1117" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="918.0" y="101.8" font-size="10.5" fill="#3A2A00" text-anchor="middle" font-weight="bold">demo setup</text>
+<line x1="140.0" y1="250.0" x2="140.0" y2="280.0" stroke="#E6EDF3" stroke-width="1.8"/>
+<line x1="380.0" y1="250.0" x2="380.0" y2="280.0" stroke="#E6EDF3" stroke-width="1.8"/>
+<line x1="620.0" y1="250.0" x2="620.0" y2="280.0" stroke="#E6EDF3" stroke-width="1.8"/>
+<line x1="860.0" y1="250.0" x2="860.0" y2="280.0" stroke="#E6EDF3" stroke-width="1.8"/>
+<line x1="140.0" y1="280.0" x2="860.0" y2="280.0" stroke="#E6EDF3" stroke-width="1.8"/>
+<line x1="30.0" y1="317.0" x2="970.0" y2="317.0" stroke="#30363D" stroke-width="1.0"/>
+<text x="30.0" y="310.0" font-size="12.5" fill="#9DA7B3" text-anchor="start" font-style="italic" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">② --dialogue</text>
+<rect x="250.0" y="340.0" width="210.0" height="64.0" rx="12.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="355.0" y="368.5" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">StubDialogueManager</text>
+<text x="355.0" y="385.0" font-size="12.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">console stand-in</text>
+<rect x="540.0" y="340.0" width="210.0" height="64.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="645.0" y="368.5" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">DialogueBridge</text>
+<text x="645.0" y="385.0" font-size="12.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">LangGraph service · Py 3.11</text>
+<path d="M500.0,280.0 L500.0,289.0 Q500.0,298.0 491.0,298.0 L367.0,298.0 Q355.0,298.0 355.0,310.0 L355.0,340.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="345.0" y="328.0" font-size="12.0" fill="#E6EDF3" text-anchor="end" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">stub</text>
+<path d="M500.0,298.0 L633.0,298.0 Q645.0,298.0 645.0,310.0 L645.0,340.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="655.0" y="328.0" font-size="12.0" fill="#E6EDF3" text-anchor="start" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">real</text>
+<path d="M540.0,372.0 L460.0,372.0" fill="none" stroke="#F85149" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-C62828)"/>
+<text x="500.0" y="364.0" font-size="11.5" fill="#F85149" text-anchor="middle" font-style="italic" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">fails to start</text>
+<line x1="30.0" y1="439.0" x2="970.0" y2="439.0" stroke="#30363D" stroke-width="1.0"/>
+<text x="30.0" y="432.0" font-size="12.5" fill="#9DA7B3" text-anchor="start" font-style="italic" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">③ recommender</text>
+<rect x="395.0" y="462.0" width="210.0" height="64.0" rx="12.0" fill="url(#g-darkgreen)" stroke="#146339" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="500.0" y="490.5" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">BayesianRecommender</text>
+<text x="500.0" y="507.0" font-size="12.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">pyAgrum network</text>
+<rect x="740.0" y="462.0" width="200.0" height="64.0" rx="12.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="840.0" y="490.5" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">StubRecommender</text>
+<text x="840.0" y="507.0" font-size="12.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">toy deterministic ranker</text>
+<path d="M355.0,404.0 L355.0,432.0 Q355.0,444.0 367.0,444.0 L461.0,444.0 Q470.0,444.0 470.0,453.0 L470.0,462.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M645.0,404.0 L645.0,432.0 Q645.0,444.0 633.0,444.0 L539.0,444.0 Q530.0,444.0 530.0,453.0 L530.0,462.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M605.0,494.0 L740.0,494.0" fill="none" stroke="#F85149" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-C62828)"/>
+<text x="672.5" y="486.0" font-size="11.5" fill="#F85149" text-anchor="middle" font-style="italic" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">pyAgrum unavailable</text>
+<line x1="30.0" y1="561.0" x2="970.0" y2="561.0" stroke="#30363D" stroke-width="1.0"/>
+<text x="30.0" y="554.0" font-size="12.5" fill="#9DA7B3" text-anchor="start" font-style="italic" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">④ run</text>
+<rect x="407.0" y="583.0" width="186.0" height="38.0" rx="19.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="500.0" y="606.9" font-size="13.5" fill="#FFFFFF" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-weight="bold">InteractionFSM.run()</text>
+<path d="M500.0,526.0 L500.0,583.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M840.0,526.0 L840.0,590.0 Q840.0,602.0 828.0,602.0 L593.0,602.0" fill="none" stroke="#8B949E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-7A8088)"/>
+</svg>

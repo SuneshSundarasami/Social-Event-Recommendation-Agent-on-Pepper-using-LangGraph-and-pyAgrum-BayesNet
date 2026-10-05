@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="526" viewBox="0 0 1000 526" font-family="Arial, Helvetica, sans-serif">
+<title>Inference and explanation. Real output for a visitor who said they like art, are going alone and want something relaxed</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C04A"/><stop offset="1" stop-color="#EDA923"/></linearGradient><linearGradient id="g-darkgreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25995D"/><stop offset="1" stop-color="#1A7B47"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#E6EDF3"/></marker><linearGradient id="g-salmon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EC6868"/><stop offset="1" stop-color="#D84E4E"/></linearGradient><linearGradient id="g-steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A88BA"/><stop offset="1" stop-color="#44709F"/></linearGradient></defs>
+<text x="30.0" y="30.0" font-size="13.0" fill="#9DA7B3" text-anchor="start" font-weight="bold">Evidence</text>
+<rect x="30.0" y="44.0" width="200.0" height="32.0" rx="8.0" fill="#161B22" stroke="#8DB8DE" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="130.0" y="64.5" font-size="12.5" fill="#79C0FF" text-anchor="middle" font-weight="bold">Interest = Arts</text>
+<rect x="30.0" y="84.0" width="200.0" height="32.0" rx="8.0" fill="#161B22" stroke="#8DB8DE" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="130.0" y="104.5" font-size="12.5" fill="#79C0FF" text-anchor="middle" font-weight="bold">GroupSize = Solo</text>
+<rect x="30.0" y="124.0" width="200.0" height="32.0" rx="8.0" fill="#161B22" stroke="#8DB8DE" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="130.0" y="144.5" font-size="12.5" fill="#79C0FF" text-anchor="middle" font-weight="bold">ActivityLevel = Relaxed</text>
+<rect x="30.0" y="164.0" width="200.0" height="32.0" rx="8.0" fill="#161B22" stroke="#3D444D" stroke-width="1.6" stroke-dasharray="5 4" filter="url(#shadow)"/>
+<text x="130.0" y="184.5" font-size="12.5" fill="#9DA7B3" text-anchor="middle" font-weight="bold">Budget = ?</text>
+<rect x="30.0" y="204.0" width="200.0" height="32.0" rx="8.0" fill="#161B22" stroke="#3D444D" stroke-width="1.6" stroke-dasharray="5 4" filter="url(#shadow)"/>
+<text x="130.0" y="224.5" font-size="12.5" fill="#9DA7B3" text-anchor="middle" font-weight="bold">Setting = ?</text>
+<rect x="30.0" y="244.0" width="200.0" height="32.0" rx="8.0" fill="#161B22" stroke="#3D444D" stroke-width="1.6" stroke-dasharray="5 4" filter="url(#shadow)"/>
+<text x="130.0" y="264.5" font-size="12.5" fill="#9DA7B3" text-anchor="middle" font-weight="bold">TimeOfDay = ?</text>
+<text x="130.0" y="296.0" font-size="11.5" fill="#9DA7B3" text-anchor="middle" font-style="italic">unknown → uniform prior</text>
+<rect x="270.0" y="126.0" width="130.0" height="68.0" rx="12.0" fill="url(#g-amber)" stroke="#C98A0C" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="335.0" y="157.9" font-size="14.0" fill="#3A2A00" text-anchor="middle" font-weight="bold">Whitelist</text>
+<text x="335.0" y="172.3" font-size="10.5" fill="#3A2A00" text-anchor="middle">validate_evidence()</text>
+<rect x="436.0" y="110.0" width="160.0" height="100.0" rx="12.0" fill="url(#g-darkgreen)" stroke="#146339" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="516.0" y="148.4" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">LazyPropagation</text>
+<text x="516.0" y="164.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">pyAgrum</text>
+<text x="516.0" y="181.6" font-size="12.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">exact inference</text>
+<path d="M236.0,160.0 L270.0,160.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<line x1="232.0" y1="60.0" x2="232.0" y2="260.0" stroke="#E6EDF3" stroke-width="1.6"/>
+<path d="M400.0,160.0 L436.0,160.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="640.0" y="30.0" font-size="13.0" fill="#E6EDF3" text-anchor="start" font-weight="bold">recommend() → ranked posterior</text>
+<text x="722.0" y="62.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Museum</text>
+<rect x="730.0" y="50.0" width="211.1" height="18.0" rx="4.0" fill="url(#g-salmon)" stroke="#B83E3E" stroke-width="1.0"/>
+<text x="947.1" y="63.0" font-size="11.5" fill="#E6EDF3" text-anchor="start" font-weight="bold">40.6%</text>
+<text x="722.0" y="89.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Workshop</text>
+<rect x="730.0" y="77.0" width="99.8" height="18.0" rx="4.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.0"/>
+<text x="835.8" y="90.0" font-size="11.5" fill="#E6EDF3" text-anchor="start">19.2%</text>
+<text x="722.0" y="116.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Food</text>
+<rect x="730.0" y="104.0" width="57.2" height="18.0" rx="4.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.0"/>
+<text x="793.2" y="117.0" font-size="11.5" fill="#E6EDF3" text-anchor="start">11.0%</text>
+<text x="722.0" y="143.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Networking</text>
+<rect x="730.0" y="131.0" width="55.6" height="18.0" rx="4.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.0"/>
+<text x="791.6" y="144.0" font-size="11.5" fill="#E6EDF3" text-anchor="start">10.7%</text>
+<text x="722.0" y="170.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Outdoor</text>
+<rect x="730.0" y="158.0" width="34.8" height="18.0" rx="4.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.0"/>
+<text x="770.8" y="171.0" font-size="11.5" fill="#E6EDF3" text-anchor="start">6.7%</text>
+<text x="722.0" y="197.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Concert</text>
+<rect x="730.0" y="185.0" width="27.6" height="18.0" rx="4.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.0"/>
+<text x="763.6" y="198.0" font-size="11.5" fill="#E6EDF3" text-anchor="start">5.3%</text>
+<text x="722.0" y="224.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Nightlife</text>
+<rect x="730.0" y="212.0" width="18.2" height="18.0" rx="4.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.0"/>
+<text x="754.2" y="225.0" font-size="11.5" fill="#E6EDF3" text-anchor="start">3.5%</text>
+<text x="722.0" y="251.0" font-size="12.0" fill="#E6EDF3" text-anchor="end">Sports</text>
+<rect x="730.0" y="239.0" width="15.1" height="18.0" rx="4.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.0"/>
+<text x="751.1" y="252.0" font-size="11.5" fill="#E6EDF3" text-anchor="start">2.9%</text>
+<path d="M596.0,136.0 L607.0,136.0 Q612.0,136.0 612.0,141.0 L612.0,141.0 Q612.0,146.0 617.0,146.0 L636.0,146.0" fill="none" stroke="#E6EDF3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="640.0" y="290.0" font-size="13.0" fill="#E6EDF3" text-anchor="start" font-weight="bold">explain() → most likely latent values</text>
+<rect x="640.0" y="304.0" width="160.0" height="32.0" rx="8.0" fill="#161B22" stroke="#8CCB88" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="720.0" y="324.1" font-size="11.5" fill="#56D364" text-anchor="middle" font-weight="bold">VenueType = Cultural</text>
+<rect x="808.0" y="304.0" width="160.0" height="32.0" rx="8.0" fill="#161B22" stroke="#8CCB88" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="888.0" y="324.1" font-size="11.5" fill="#56D364" text-anchor="middle" font-weight="bold">SocialContext = Intimate</text>
+<rect x="640.0" y="344.0" width="160.0" height="32.0" rx="8.0" fill="#161B22" stroke="#8CCB88" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="720.0" y="364.1" font-size="11.5" fill="#56D364" text-anchor="middle" font-weight="bold">EnergyProfile = Low</text>
+<path d="M596.0,184.0 L604.0,184.0 Q612.0,184.0 612.0,192.0 L612.0,308.0 Q612.0,320.0 624.0,320.0 L636.0,320.0" fill="none" stroke="#E6EDF3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M642.0,394.0 H958.0 Q970.0,394.0 970.0,406.0 V466.0 Q970.0,478.0 958.0,478.0 H664.0 L656.0,489.0 L652.0,478.0 H642.0 Q630.0,478.0 630.0,466.0 V406.0 Q630.0,394.0 642.0,394.0 Z" fill="#161B22" stroke="#3D444D" stroke-width="1.6" stroke-linejoin="round" filter="url(#shadow)"/>
+<text x="800.0" y="414.5" font-size="11.0" fill="#E6EDF3" text-anchor="middle" font-weight="bold">JARVIS</text>
+<text x="800.0" y="432.0" font-size="12.0" fill="#E6EDF3" text-anchor="middle">I suggest Museum because your preferences</text>
+<text x="800.0" y="448.3" font-size="12.0" fill="#E6EDF3" text-anchor="middle">point to a cultural venue with a</text>
+<text x="800.0" y="464.6" font-size="12.0" fill="#E6EDF3" text-anchor="middle">intimate vibe and a low-key feel.</text>
+</svg>

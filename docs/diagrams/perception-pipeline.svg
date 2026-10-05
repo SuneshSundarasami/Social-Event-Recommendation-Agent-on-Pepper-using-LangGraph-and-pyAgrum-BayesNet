@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="356" viewBox="0 0 1000 356" font-family="Arial, Helvetica, sans-serif">
+<title>Perception pipeline. Detection says someone is there; recognition says who it is. Everything runs on the device.</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EE5243"/><stop offset="1" stop-color="#D93A2B"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#1F2328"/></marker><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient><linearGradient id="g-lightgreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7CCB5A"/><stop offset="1" stop-color="#62B444"/></linearGradient><linearGradient id="g-darkred" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C93030"/><stop offset="1" stop-color="#A91C1C"/></linearGradient><linearGradient id="g-amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C04A"/><stop offset="1" stop-color="#EDA923"/></linearGradient><linearGradient id="g-grey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9AA0A6"/><stop offset="1" stop-color="#7D838A"/></linearGradient><marker id="m-1E8449" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#1E8449"/></marker><marker id="m-5A6270" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#5A6270"/></marker></defs>
+<rect x="30.0" y="54.0" width="170.0" height="58.0" rx="10.0" fill="#FFFFFD" stroke="#F0A79E" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="115.0" y="80.0" font-size="13.5" fill="#B32B21" text-anchor="middle" font-weight="bold">Webcam</text>
+<text x="115.0" y="95.4" font-size="11.5" fill="#1F2328" text-anchor="middle">DirectShow first on Windows</text>
+<rect x="30.0" y="132.0" width="170.0" height="58.0" rx="10.0" fill="#FFFFFD" stroke="#F0A79E" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="115.0" y="158.0" font-size="13.5" fill="#B32B21" text-anchor="middle" font-weight="bold">Pepper head camera</text>
+<text x="115.0" y="173.4" font-size="11.5" fill="#1F2328" text-anchor="middle">qiBullet · QVGA</text>
+<rect x="250.0" y="66.0" width="180.0" height="112.0" rx="12.0" fill="url(#g-red)" stroke="#B8301F" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="340.0" y="95.0" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Haar cascade</text>
+<text x="340.0" y="110.8" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">detect</text>
+<text x="340.0" y="127.1" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">grayscale frame</text>
+<text x="340.0" y="143.4" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">scale 1.1 · 5 neighbours</text>
+<text x="340.0" y="159.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">faces ≥ 60 px</text>
+<path d="M200.0,83.0 L213.0,83.0 Q225.0,83.0 225.0,95.0 L225.0,100.0 Q225.0,112.0 237.0,112.0 L250.0,112.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M200.0,161.0 L213.0,161.0 Q225.0,161.0 225.0,149.0 L225.0,144.0 Q225.0,132.0 237.0,132.0 L250.0,132.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<rect x="480.0" y="46.0" width="236.0" height="104.0" rx="10.0" fill="#FFFFFD" stroke="#8CCB88" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="598.0" y="70.0" font-size="12.5" fill="#1E7A2B" text-anchor="middle" font-weight="bold">sliding window · last 5 frames</text>
+<rect x="498.0" y="92.0" width="34.0" height="34.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M507.4,109.0 L513.1,114.4 L522.6,103.3" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="540.0" y="92.0" width="34.0" height="34.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M549.4,109.0 L555.1,114.4 L564.6,103.3" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="582.0" y="92.0" width="34.0" height="34.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M593.6,103.6 L604.4,114.4 M604.4,103.6 L593.6,114.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="624.0" y="92.0" width="34.0" height="34.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M633.4,109.0 L639.1,114.4 L648.6,103.3" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="666.0" y="92.0" width="34.0" height="34.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M675.4,109.0 L681.1,114.4 L690.6,103.3" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M430.0,98.0 L455.0,98.0 L455.0,98.0 L480.0,98.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<rect x="770.0" y="24.0" width="200.0" height="66.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="870.0" y="46.4" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">face_stable()</text>
+<text x="870.0" y="61.9" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">≥ 4 of 5, window full</text>
+<text x="870.0" y="77.5" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">→ start the interaction</text>
+<rect x="770.0" y="106.0" width="200.0" height="66.0" rx="12.0" fill="url(#g-lightgreen)" stroke="#4C9634" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="870.0" y="128.4" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">is_present()</text>
+<text x="870.0" y="143.9" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">≥ 2 of 5</text>
+<text x="870.0" y="159.5" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">→ keep it going</text>
+<path d="M716.0,84.0 L730.0,84.0 Q742.0,84.0 742.0,72.0 L742.0,69.0 Q742.0,57.0 754.0,57.0 L770.0,57.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M716.0,112.0 L730.0,112.0 Q742.0,112.0 742.0,124.0 L742.0,127.0 Q742.0,139.0 754.0,139.0 L770.0,139.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<rect x="480.0" y="220.0" width="236.0" height="90.0" rx="12.0" fill="url(#g-darkred)" stroke="#8E1515" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="598.0" y="246.1" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">LBPH recognizer</text>
+<text x="598.0" y="262.0" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">verify</text>
+<text x="598.0" y="278.2" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">largest face · 200×200 crop</text>
+<text x="598.0" y="294.6" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">trained on known_faces/</text>
+<path d="M340.0,178.0 L340.0,253.0 Q340.0,265.0 352.0,265.0 L480.0,265.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="410.0" y="257.0" font-size="11.5" fill="#1F2328" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">largest face box</text>
+<polygon points="808.0,222.0 868.0,265.0 808.0,308.0 748.0,265.0" fill="url(#g-amber)" stroke="#C98A0C" stroke-width="1.2" stroke-linejoin="round" filter="url(#shadow)"/>
+<text x="808.0" y="261.0" font-size="12.5" fill="#3A2A00" text-anchor="middle">distance</text>
+<text x="808.0" y="278.0" font-size="12.5" fill="#3A2A00" text-anchor="middle">≤ 75?</text>
+<path d="M716.0,265.0 L748.0,265.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<rect x="883.0" y="218.0" width="70.0" height="32.0" rx="16.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="918.0" y="238.7" font-size="13.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">name</text>
+<rect x="883.6" y="282.0" width="68.8" height="32.0" rx="16.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="918.0" y="302.7" font-size="13.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">None</text>
+<path d="M808.0,222.0 L808.0,228.0 Q808.0,234.0 814.0,234.0 L883.0,234.0" fill="none" stroke="#1E8449" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1E8449)"/>
+<text x="838.0" y="227.0" font-size="11.5" fill="#1E8449" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">yes</text>
+<path d="M808.0,308.0 L808.0,303.0 Q808.0,298.0 813.0,298.0 L883.6,298.0" fill="none" stroke="#5A6270" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-5A6270)"/>
+<text x="838.0" y="291.0" font-size="11.5" fill="#5A6270" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">no</text>
+<text x="658.0" y="336.0" font-size="11.5" fill="#5A6270" text-anchor="middle" font-style="italic">distance ≈ 0 for a genuine match · ≈ 180 for a stranger</text>
+</svg>

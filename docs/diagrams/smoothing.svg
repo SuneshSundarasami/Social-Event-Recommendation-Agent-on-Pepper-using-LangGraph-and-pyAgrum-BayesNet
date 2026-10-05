@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="296" viewBox="0 0 1000 296" font-family="Arial, Helvetica, sans-serif">
+<title>Two thresholds over one window. A strict bar to start an interaction, a lenient one to keep it going</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient><linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#167CCC"/><stop offset="1" stop-color="#0262AB"/></linearGradient><linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EE5243"/><stop offset="1" stop-color="#D93A2B"/></linearGradient></defs>
+<text x="60.0" y="28.0" font-size="12.5" fill="#5A6270" text-anchor="start" font-weight="bold">last five frames</text>
+<text x="498.0" y="20.0" font-size="12.5" fill="#1F2328" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-weight="bold">face_stable()</text>
+<text x="498.0" y="36.0" font-size="12.0" fill="#5A6270" text-anchor="middle">≥ 4 of 5</text>
+<text x="658.0" y="20.0" font-size="12.5" fill="#1F2328" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-weight="bold">is_present()</text>
+<text x="658.0" y="36.0" font-size="12.0" fill="#5A6270" text-anchor="middle">≥ 2 of 5</text>
+<text x="820.0" y="28.0" font-size="12.5" fill="#5A6270" text-anchor="middle" font-weight="bold">effect</text>
+<rect x="30.0" y="54.0" width="940.0" height="58.0" rx="10.0" fill="#F7F8FA"/>
+<rect x="60.0" y="62.0" width="40.0" height="40.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M71.0,82.0 L77.8,88.3 L89.0,75.2" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="106.0" y="62.0" width="40.0" height="40.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M117.0,82.0 L123.8,88.3 L135.0,75.2" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="152.0" y="62.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M165.6,75.6 L178.4,88.4 M178.4,75.6 L165.6,88.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="198.0" y="62.0" width="40.0" height="40.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M209.0,82.0 L215.8,88.3 L227.0,75.2" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="244.0" y="62.0" width="40.0" height="40.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M255.0,82.0 L261.8,88.3 L273.0,75.2" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="296.0" y="87.0" font-size="13.0" fill="#5A6270" text-anchor="start" font-weight="bold">4 / 5</text>
+<rect x="480.0" y="64.0" width="36.0" height="36.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M489.9,82.0 L496.0,87.7 L506.1,75.9" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="640.0" y="64.0" width="36.0" height="36.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M649.9,82.0 L656.0,87.7 L666.1,75.9" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="754.2" y="65.0" width="131.5" height="34.0" rx="17.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="820.0" y="86.7" font-size="13.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Idle → Greeting</text>
+<rect x="30.0" y="124.0" width="940.0" height="58.0" rx="10.0" fill="none"/>
+<rect x="60.0" y="132.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M73.6,145.6 L86.4,158.4 M86.4,145.6 L73.6,158.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="106.0" y="132.0" width="40.0" height="40.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M117.0,152.0 L123.8,158.3 L135.0,145.2" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="152.0" y="132.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M165.6,145.6 L178.4,158.4 M178.4,145.6 L165.6,158.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="198.0" y="132.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M211.6,145.6 L224.4,158.4 M224.4,145.6 L211.6,158.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="244.0" y="132.0" width="40.0" height="40.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M255.0,152.0 L261.8,158.3 L273.0,145.2" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="296.0" y="157.0" font-size="13.0" fill="#5A6270" text-anchor="start" font-weight="bold">2 / 5</text>
+<rect x="480.0" y="134.0" width="36.0" height="36.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M492.2,146.2 L503.8,157.8 M503.8,146.2 L492.2,157.8" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="640.0" y="134.0" width="36.0" height="36.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M649.9,152.0 L656.0,157.7 L666.1,145.9" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="729.0" y="135.0" width="182.0" height="34.0" rx="17.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="820.0" y="156.7" font-size="13.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">conversation continues</text>
+<rect x="30.0" y="194.0" width="940.0" height="58.0" rx="10.0" fill="#F7F8FA"/>
+<rect x="60.0" y="202.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M73.6,215.6 L86.4,228.4 M86.4,215.6 L73.6,228.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="106.0" y="202.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M119.6,215.6 L132.4,228.4 M132.4,215.6 L119.6,228.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="152.0" y="202.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M165.6,215.6 L178.4,228.4 M178.4,215.6 L165.6,228.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="198.0" y="202.0" width="40.0" height="40.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M211.6,215.6 L224.4,228.4 M224.4,215.6 L211.6,228.4" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="244.0" y="202.0" width="40.0" height="40.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<path d="M255.0,222.0 L261.8,228.3 L273.0,215.2" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="296.0" y="227.0" font-size="13.0" fill="#5A6270" text-anchor="start" font-weight="bold">1 / 5</text>
+<rect x="480.0" y="204.0" width="36.0" height="36.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M492.2,216.2 L503.8,227.8 M503.8,216.2 L492.2,227.8" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="640.0" y="204.0" width="36.0" height="36.0" rx="8.0" fill="#EEF0F2" stroke="#C9CED4" stroke-width="1.4"/>
+<path d="M652.2,216.2 L663.8,227.8 M663.8,216.2 L652.2,227.8" fill="none" stroke="#A0A6AD" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="750.1" y="205.0" width="139.8" height="34.0" rx="17.0" fill="url(#g-red)" stroke="#B8301F" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="820.0" y="226.7" font-size="13.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">visitor left → Idle</text>
+</svg>

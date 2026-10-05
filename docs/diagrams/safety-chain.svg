@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="436" viewBox="0 0 1000 436" font-family="Arial, Helvetica, sans-serif">
+<title>From free text to safe evidence. Every reply passes the same chain of checks before it can influence a recommendation</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C04A"/><stop offset="1" stop-color="#EDA923"/></linearGradient><linearGradient id="g-darkred" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C93030"/><stop offset="1" stop-color="#A91C1C"/></linearGradient><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#1F2328"/></marker><marker id="m-C62828" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#C62828"/></marker><marker id="m-5A6270" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#5A6270"/></marker></defs>
+<path d="M42.0,56.0 H150.0 Q162.0,56.0 162.0,68.0 V116.0 Q162.0,128.0 150.0,128.0 H64.0 L56.0,139.0 L52.0,128.0 H42.0 Q30.0,128.0 30.0,116.0 V68.0 Q30.0,56.0 42.0,56.0 Z" fill="#FFFFFD" stroke="#D0D5DB" stroke-width="1.6" stroke-linejoin="round" filter="url(#shadow)"/>
+<text x="96.0" y="78.7" font-size="11.0" fill="#1F2328" text-anchor="middle" font-weight="bold">VISITOR</text>
+<text x="96.0" y="96.2" font-size="12.0" fill="#1F2328" text-anchor="middle" font-style="italic">&quot;somewhere cheap,</text>
+<text x="96.0" y="112.5" font-size="12.0" fill="#1F2328" text-anchor="middle" font-style="italic">outside — great!&quot;</text>
+<rect x="190.0" y="50.0" width="138.0" height="88.0" rx="12.0" fill="url(#g-amber)" stroke="#C98A0C" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="259.0" y="82.7" font-size="14.0" fill="#3A2A00" text-anchor="middle" font-weight="bold">Abuse filter</text>
+<text x="259.0" y="98.7" font-size="12.0" fill="#3A2A00" text-anchor="middle">flagged-word</text>
+<text x="259.0" y="115.0" font-size="12.0" fill="#3A2A00" text-anchor="middle">check</text>
+<circle cx="192.0" cy="52.0" r="12.0" fill="#0A2A43" stroke="#FFFFFE" stroke-width="2"/>
+<text x="192.0" y="56.0" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">1</text>
+<rect x="352.0" y="50.0" width="150.0" height="88.0" rx="12.0" fill="url(#g-darkred)" stroke="#8E1515" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="427.0" y="74.8" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">LLM parser</text>
+<text x="427.0" y="90.4" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">Groq</text>
+<text x="427.0" y="106.6" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">JSON mode</text>
+<text x="427.0" y="123.0" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">temperature 0</text>
+<circle cx="354.0" cy="52.0" r="12.0" fill="#0A2A43" stroke="#FFFFFE" stroke-width="2"/>
+<text x="354.0" y="56.0" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">2</text>
+<rect x="526.0" y="50.0" width="138.0" height="88.0" rx="12.0" fill="url(#g-amber)" stroke="#C98A0C" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="595.0" y="82.7" font-size="14.0" fill="#3A2A00" text-anchor="middle" font-weight="bold">Whitelist</text>
+<text x="595.0" y="98.7" font-size="12.0" fill="#3A2A00" text-anchor="middle">legal slots and</text>
+<text x="595.0" y="115.0" font-size="12.0" fill="#3A2A00" text-anchor="middle">values only</text>
+<circle cx="528.0" cy="52.0" r="12.0" fill="#0A2A43" stroke="#FFFFFE" stroke-width="2"/>
+<text x="528.0" y="56.0" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">3</text>
+<rect x="688.0" y="50.0" width="138.0" height="88.0" rx="12.0" fill="url(#g-amber)" stroke="#C98A0C" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="757.0" y="82.7" font-size="14.0" fill="#3A2A00" text-anchor="middle" font-weight="bold">Weak-value guard</text>
+<text x="757.0" y="98.7" font-size="12.0" fill="#3A2A00" text-anchor="middle">drop catch-alls</text>
+<text x="757.0" y="115.0" font-size="12.0" fill="#3A2A00" text-anchor="middle">without a cue</text>
+<circle cx="690.0" cy="52.0" r="12.0" fill="#0A2A43" stroke="#FFFFFE" stroke-width="2"/>
+<text x="690.0" y="56.0" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">4</text>
+<rect x="850.0" y="50.0" width="120.0" height="88.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="910.0" y="83.6" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Evidence</text>
+<text x="910.0" y="99.2" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">Budget=Low</text>
+<text x="910.0" y="114.8" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">Setting=Outdoor</text>
+<path d="M162.0,92.0 L190.0,94.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M328.0,94.0 L352.0,94.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M502.0,94.0 L526.0,94.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M664.0,94.0 L688.0,94.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M826.0,94.0 L850.0,94.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<rect x="190.0" y="188.0" width="138.0" height="62.0" rx="10.0" fill="#FFFFFD" stroke="#F0A79E" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="259.0" y="207.9" font-size="12.5" fill="#B32B21" text-anchor="middle" font-weight="bold">declined</text>
+<text x="259.0" y="222.9" font-size="11.5" fill="#1F2328" text-anchor="middle">&quot;Let&#x27;s keep this</text>
+<text x="259.0" y="238.6" font-size="11.5" fill="#1F2328" text-anchor="middle">friendly…&quot; re-ask</text>
+<path d="M259.0,138.0 L259.0,188.0" fill="none" stroke="#C62828" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-C62828)"/>
+<rect x="352.0" y="188.0" width="150.0" height="62.0" rx="10.0" fill="#FFFFFD" stroke="#CDD2D8" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="427.0" y="207.9" font-size="12.5" fill="#4A525C" text-anchor="middle" font-weight="bold">omitted</text>
+<text x="427.0" y="222.9" font-size="11.5" fill="#1F2328" text-anchor="middle">vague replies like</text>
+<text x="427.0" y="238.6" font-size="11.5" fill="#1F2328" text-anchor="middle">&quot;sure&quot; fill nothing</text>
+<path d="M427.0,138.0 L427.0,188.0" fill="none" stroke="#5A6270" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-5A6270)"/>
+<rect x="526.0" y="188.0" width="138.0" height="62.0" rx="10.0" fill="#FFFFFD" stroke="#F0A79E" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="595.0" y="207.9" font-size="12.5" fill="#B32B21" text-anchor="middle" font-weight="bold">dropped</text>
+<text x="595.0" y="222.9" font-size="11.5" fill="#1F2328" text-anchor="middle">unknown slots or</text>
+<text x="595.0" y="238.6" font-size="11.5" fill="#1F2328" text-anchor="middle">illegal values</text>
+<path d="M595.0,138.0 L595.0,188.0" fill="none" stroke="#C62828" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-C62828)"/>
+<rect x="688.0" y="188.0" width="138.0" height="62.0" rx="10.0" fill="#FFFFFD" stroke="#F0A79E" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="757.0" y="207.9" font-size="12.5" fill="#B32B21" text-anchor="middle" font-weight="bold">dropped</text>
+<text x="757.0" y="222.9" font-size="11.5" fill="#1F2328" text-anchor="middle">&quot;great&quot; never becomes</text>
+<text x="757.0" y="238.6" font-size="11.5" fill="#1F2328" text-anchor="middle">Setting=Either</text>
+<path d="M757.0,138.0 L757.0,188.0" fill="none" stroke="#C62828" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-C62828)"/>
+<rect x="30.0" y="294.0" width="940.0" height="112.0" rx="18.0" fill="#EEF2F6" stroke="#9FB2C6" stroke-width="1.8"/>
+<text x="52.0" y="322.0" font-size="14.5" fill="#0B2B46" text-anchor="start" font-weight="bold">Defence in depth</text>
+<text x="52.0" y="341.0" font-size="12.0" fill="#5A6270" text-anchor="start">the same whitelist runs three times</text>
+<rect x="300.0" y="324.0" width="196.0" height="54.0" rx="10.0" fill="#FFFFFD" stroke="#9FB2C6" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="398.0" y="347.9" font-size="13.0" fill="#0B2B46" text-anchor="middle" font-weight="bold">schema.whitelist()</text>
+<text x="398.0" y="363.1" font-size="11.5" fill="#1F2328" text-anchor="middle">dialogue process</text>
+<rect x="520.0" y="324.0" width="196.0" height="54.0" rx="10.0" fill="#FFFFFD" stroke="#9FB2C6" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="618.0" y="347.9" font-size="13.0" fill="#0B2B46" text-anchor="middle" font-weight="bold">validate_evidence()</text>
+<text x="618.0" y="363.1" font-size="11.5" fill="#1F2328" text-anchor="middle">InteractionFSM</text>
+<rect x="740.0" y="324.0" width="196.0" height="54.0" rx="10.0" fill="#FFFFFD" stroke="#9FB2C6" stroke-width="1.6" filter="url(#shadow)"/>
+<text x="838.0" y="347.9" font-size="13.0" fill="#0B2B46" text-anchor="middle" font-weight="bold">validate_evidence()</text>
+<text x="838.0" y="363.1" font-size="11.5" fill="#1F2328" text-anchor="middle">BayesianRecommender</text>
+<path d="M496.0,351.0 L520.0,351.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M716.0,351.0 L740.0,351.0" fill="none" stroke="#1F2328" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="48.0" y="376.0" font-size="12.0" fill="#5A6270" text-anchor="start">the network only ever sees</text>
+<text x="48.0" y="392.0" font-size="12.0" fill="#5A6270" text-anchor="start">legal labels</text>
+</svg>

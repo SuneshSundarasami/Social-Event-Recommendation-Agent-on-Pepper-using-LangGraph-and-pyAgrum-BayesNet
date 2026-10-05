@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="316" viewBox="0 0 1000 316" font-family="Arial, Helvetica, sans-serif">
+<title>Speech and gesture in step. say_with_gesture() starts both together and returns only when both have finished (the three greeting beats)</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#21262D"/><line x1="0" y1="0" x2="0" y2="7" stroke="#3D444D" stroke-width="2.5"/></pattern><linearGradient id="g-navy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A4468"/><stop offset="1" stop-color="#0A2A43"/></linearGradient><linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#167CCC"/><stop offset="1" stop-color="#0262AB"/></linearGradient><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient></defs>
+<rect x="30.0" y="42.0" width="160.0" height="46.0" rx="10.0" fill="#0F1B29" stroke="#9FB2C6" stroke-width="1.4"/>
+<text x="110.0" y="69.5" font-size="13.0" fill="#A5C8E8" text-anchor="middle" font-weight="bold">InteractionFSM</text>
+<line x1="210.0" y1="65.0" x2="978.8" y2="65.0" stroke="#30363D" stroke-width="1.0"/>
+<rect x="30.0" y="106.0" width="160.0" height="46.0" rx="10.0" fill="#0C1D33" stroke="#8DB8DE" stroke-width="1.4"/>
+<text x="110.0" y="133.5" font-size="13.0" fill="#79C0FF" text-anchor="middle" font-weight="bold">gesture thread</text>
+<line x1="210.0" y1="129.0" x2="978.8" y2="129.0" stroke="#30363D" stroke-width="1.0"/>
+<rect x="30.0" y="170.0" width="160.0" height="46.0" rx="10.0" fill="#0F2417" stroke="#8CCB88" stroke-width="1.4"/>
+<text x="110.0" y="197.5" font-size="13.0" fill="#56D364" text-anchor="middle" font-weight="bold">TTS worker</text>
+<line x1="210.0" y1="193.0" x2="978.8" y2="193.0" stroke="#30363D" stroke-width="1.0"/>
+<rect x="212.0" y="48.0" width="306.0" height="34.0" rx="8.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2"/>
+<text x="365.0" y="69.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">beat 1</text>
+<rect x="212.0" y="112.0" width="306.0" height="34.0" rx="8.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2"/>
+<text x="365.0" y="133.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">wave · 5.0 s</text>
+<rect x="212.0" y="176.0" width="206.8" height="34.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2"/>
+<text x="315.4" y="197.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-style="italic">&quot;Greetings, Sunesh…&quot;</text>
+<rect x="422.8" y="180.0" width="95.2" height="26.0" rx="6.0" fill="url(#hatch)" stroke="#3D444D" stroke-width="1.0"/>
+<line x1="520.0" y1="38.0" x2="520.0" y2="222.0" stroke="#F85149" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="520.0" y="33.0" font-size="11.0" fill="#F85149" text-anchor="middle" font-style="italic">both done</text>
+<rect x="522.0" y="48.0" width="144.8" height="34.0" rx="8.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2"/>
+<text x="594.4" y="69.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">beat 2</text>
+<rect x="522.0" y="112.0" width="95.2" height="34.0" rx="8.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2"/>
+<text x="569.6" y="133.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">nod · 1.6 s</text>
+<rect x="522.0" y="176.0" width="144.8" height="34.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2"/>
+<text x="594.4" y="197.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-style="italic">&quot;Systems nominal…&quot;</text>
+<rect x="621.2" y="116.0" width="45.6" height="26.0" rx="6.0" fill="url(#hatch)" stroke="#3D444D" stroke-width="1.0"/>
+<rect x="670.8" y="180.0" width="-4.0" height="26.0" rx="6.0" fill="url(#hatch)" stroke="#3D444D" stroke-width="1.0"/>
+<line x1="668.8" y1="38.0" x2="668.8" y2="222.0" stroke="#F85149" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="668.8" y="33.0" font-size="11.0" fill="#F85149" text-anchor="middle" font-style="italic">both done</text>
+<rect x="670.8" y="48.0" width="219.2" height="34.0" rx="8.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2"/>
+<text x="780.4" y="69.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">beat 3</text>
+<rect x="670.8" y="112.0" width="194.4" height="34.0" rx="8.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2"/>
+<text x="768.0" y="133.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">open_arms · 3.2 s</text>
+<rect x="670.8" y="176.0" width="219.2" height="34.0" rx="8.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2"/>
+<text x="780.4" y="197.5" font-size="12.0" fill="#FFFFFF" text-anchor="middle" font-style="italic">&quot;Scanning the grid…&quot;</text>
+<rect x="869.2" y="116.0" width="20.8" height="26.0" rx="6.0" fill="url(#hatch)" stroke="#3D444D" stroke-width="1.0"/>
+<line x1="892.0" y1="38.0" x2="892.0" y2="222.0" stroke="#F85149" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="892.0" y="33.0" font-size="11.0" fill="#F85149" text-anchor="middle" font-style="italic">both done</text>
+<line x1="210.0" y1="240.0" x2="954.0" y2="240.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<line x1="210.0" y1="236.0" x2="210.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="210.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">0 s</text>
+<line x1="272.0" y1="236.0" x2="272.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="272.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">1</text>
+<line x1="334.0" y1="236.0" x2="334.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="334.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">2</text>
+<line x1="396.0" y1="236.0" x2="396.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="396.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">3</text>
+<line x1="458.0" y1="236.0" x2="458.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="458.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">4</text>
+<line x1="520.0" y1="236.0" x2="520.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="520.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">5</text>
+<line x1="582.0" y1="236.0" x2="582.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="582.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">6</text>
+<line x1="644.0" y1="236.0" x2="644.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="644.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">7</text>
+<line x1="706.0" y1="236.0" x2="706.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="706.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">8</text>
+<line x1="768.0" y1="236.0" x2="768.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="768.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">9</text>
+<line x1="830.0" y1="236.0" x2="830.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="830.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">10</text>
+<line x1="892.0" y1="236.0" x2="892.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="892.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">11</text>
+<line x1="954.0" y1="236.0" x2="954.0" y2="244.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text x="954.0" y="258.0" font-size="11.0" fill="#9DA7B3" text-anchor="middle">12 s</text>
+<rect x="30.0" y="272.0" width="30.0" height="14.0" rx="4.0" fill="url(#hatch)" stroke="#3D444D" stroke-width="1.0"/>
+<text x="68.0" y="283.0" font-size="11.5" fill="#9DA7B3" text-anchor="start" font-style="italic">finished early, waiting for the other half · gesture lengths from pepper_behaviour.py, speech lengths illustrative</text>
+</svg>

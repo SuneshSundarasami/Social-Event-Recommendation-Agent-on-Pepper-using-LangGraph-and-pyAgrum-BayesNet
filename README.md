@@ -1,370 +1,290 @@
-# JARVIS — Social Event Recommendation Agent on Pepper
+<div align="center">
 
-> *"At your service. Scanning the local grid for maximum energy signatures."*
+# Social Event Recommendation Agent for the Pepper Robot
 
-A socially interactive agent for the **Pepper** humanoid robot (running in the
-**qiBullet** simulation) that recommends a social event to suit the person in
-front of it. Pepper notices when someone approaches, greets them with
-coordinated speech and gestures, holds a short natural conversation to learn what
-kind of outing they're in the mood for, reasons over those preferences with a
-transparent **Bayesian network**, and then recommends an event out loud — showing
-the matching picture on its tablet and explaining *why* it chose it.
+*Face perception, an LLM-driven conversation and an explainable Bayesian network,<br/>
+running on Pepper in the qiBullet simulator*
 
-The system combines three ideas:
+![Python 3.8](https://img.shields.io/badge/robot-Python%203.8-3776AB?logo=python&logoColor=white)
+![Python 3.11](https://img.shields.io/badge/dialogue-Python%203.11-3776AB?logo=python&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-dialogue%20graph-1C3C3C?logo=langchain&logoColor=white)
+![pyAgrum](https://img.shields.io/badge/pyAgrum-Bayesian%20network-6A5ACD)
+![qiBullet](https://img.shields.io/badge/qiBullet-Pepper%20simulation-E4572E)
+![OpenCV](https://img.shields.io/badge/OpenCV-face%20detection-5C3EE8?logo=opencv&logoColor=white)
+![uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9)
 
-- a **finite-state interaction manager** that gives the encounter a clear,
-  robust shape (greet → converse → reason → recommend → say goodbye);
-- a **language model** that turns casual, free-form replies into structured
-  preferences and asks open, human-sounding questions; and
-- a **Bayesian network** that produces an explainable recommendation rather than
-  a black-box answer.
+[Overview](#overview) ·
+[Demo](#demo) ·
+[Architecture](#architecture) ·
+[Quick start](#quick-start) ·
+[Documentation](#documentation)
+
+</div>
 
 ---
 
-## What a conversation looks like
+## Overview
 
-```
-(person steps into view — face checked against known visitors)
-JARVIS:  Greetings, Sunesh. JARVIS online, at your service.     (waves)
-JARVIS:  Systems nominal. It's good to see you.                 (nods)
-JARVIS:  Scanning the local grid for a social event to suit you. (opens both arms)
+This agent runs on the **Pepper** humanoid robot (in the **qiBullet** simulator) and
+recommends a social event to the person standing in front of it.
 
-JARVIS:  Will it just be you this evening, or is anyone joining you?
+When someone approaches, Pepper recognises their face, greets them with
+coordinated speech and gestures, and asks a few open questions about what kind
+of outing they are in the mood for. A **Bayesian network** then ranks eight
+event types. Pepper says its recommendation out loud, shows a matching picture
+on its tablet, and explains *why* it chose it.
+
+The design rule throughout: **the user speaks naturally, but the decision stays
+inspectable.**
+
+| | Capability | How |
+|---|---|---|
+| **Sees** | Notices a visitor and recognises returning faces | OpenCV Haar cascade with temporal smoothing, LBPH face verification |
+| **Listens** | Understands free-form typed or spoken replies | Local Whisper ASR, Groq-hosted LLM parser |
+| **Converses** | Asks open, varied questions and handles vague or contradictory answers | LangGraph multi-agent slot-filling graph |
+| **Reasons** | Produces an explainable, ranked recommendation | 3-layer pyAgrum Bayesian network |
+| **Acts** | Speaks, gestures and shows the result | Neural TTS, Pepper joint control, tablet texture |
+| **Stays safe** | Keeps LLM output legal, asks consent before storing faces, filters abuse | Three-layer whitelist, consent-gated enrollment, abuse filter |
+
+---
+
+## Demo
+
+| Recording | Content |
+|---|---|
+| [`demo/Final_Demo_SERA.mp4`](demo/Final_Demo_SERA.mp4) | A full end-to-end encounter with Pepper in qiBullet |
+| [`demo/Final_SERA_langgraph.mp4`](demo/Final_SERA_langgraph.mp4) | The dialogue graph running, as seen in LangGraph |
+
+<details>
+<summary><b>Sample conversation transcript</b></summary>
+
+```text
+(a person steps into view; their face is checked against known visitors)
+Pepper:  Greetings, Sunesh. JARVIS online, at your service.       (waves)
+Pepper:  Systems nominal. It's good to see you.                   (nods)
+Pepper:  Scanning the local grid for a social event to suit you.  (opens both arms)
+
+Pepper:  Will it just be you this evening, or is anyone joining you?
 You:     just me, keeping it simple
-JARVIS:  What kind of pace suits you tonight — relaxed, or something livelier?
+Pepper:  What kind of pace suits you tonight: relaxed, or something livelier?
 You:     pretty relaxed
-   ... (a few more open questions — which one comes first, and how each is
-        phrased, varies from run to run) ...
+   ... a few more open questions; their order and wording change every run ...
 
-JARVIS:  Let me think about that.             (thinking pose)
-JARVIS:  Based on what you told me, I recommend the following.  (presents)
-            1. Museum        34%
+Pepper:  Let me think about that.                                 (thinking pose)
+Pepper:  Based on what you told me, I recommend the following.    (presents)
+            1. Museum        41%
             2. Workshop      19%
-            3. Food          15%
-JARVIS:  I suggest Museum because your preferences point to a cultural venue
+            3. Food          11%
+Pepper:  I suggest Museum because your preferences point to a cultural venue
          with an intimate vibe and a low-key feel.
          (the Museum image appears on Pepper's tablet)
 
-JARVIS:  Enjoy your evening. JARVIS signing off, goodbye.       (waves)
+Pepper:  Enjoy your evening. JARVIS signing off, goodbye.         (waves)
 ```
 
-If the visitor isn't recognized, greeting is preceded by a short name-and-consent
-exchange (see *Face verification* below) instead of the personalised line. If a
-reply during the conversation contains abusive language, JARVIS declines to
-parse it and asks the person to rephrase rather than engaging with it.
+The robot's persona introduces itself as *JARVIS*. If it doesn't recognise the
+visitor, it first asks their name and whether it may remember their face. If a
+reply is abusive, it politely asks the person to rephrase instead of parsing it.
+
+</details>
 
 ---
 
-## How it works
+## Architecture
 
-The agent is built from a few cooperating components, coordinated by a six-state
-interaction loop.
+The agent is a single processing route, from perception to action. It is split
+across **two Python runtimes**: qiBullet needs Python 3.8, while LangGraph needs
+Python 3.9 or newer. The two processes exchange newline-delimited JSON over
+stdio.
 
-### 1. The interaction loop (state machine)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/architecture-dark.svg">
+    <img src="docs/diagrams/architecture.svg" alt="System architecture" width="100%">
+  </picture>
+</p>
 
-```
-Idle → Greeting → Conversation → Reasoning → Recommendation → Farewell → Idle
-```
+### Interaction lifecycle
 
-- **Idle** — passively watches the camera until a face is *stably* present for
-  several consecutive frames (smoothing avoids false triggers).
-- **Greeting** — first verifies the visitor's face (see *Face verification*
-  below); if recognized, the greeting is personalised by name, otherwise
-  JARVIS asks for one (and, with consent, learns the face for next time).
-  Three coordinated beats follow — each spoken line starts together with its
-  gesture and the robot waits for both to finish (wave → nod → open arms).
-- **Conversation** — runs the dialogue to collect the user's preferences; each
-  question is spoken with a brief gesture timed to its own length, and
-  abusive replies are declined with a request to rephrase instead of being
-  parsed.
-- **Reasoning** — a "let me think" pose while the Bayesian network ranks events.
-- **Recommendation** — speaks the top events, shows the winning event's image on
-  the tablet, and explains the reasoning.
-- **Farewell** — says goodbye and resets, ready for the next person.
+Each encounter follows a six-state machine.
 
-The loop is deliberately fault-tolerant: if the person walks away at any point it
-returns to Idle, and if the recommendation comes back weak or empty it still
-presents the best available options (or apologises gracefully).
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/lifecycle-dark.svg">
+    <img src="docs/diagrams/lifecycle.svg" alt="Interaction lifecycle" width="100%">
+  </picture>
+</p>
 
-### 2. Perception
+### What the agent learns and recommends
 
-Face detection uses an OpenCV Haar cascade over a camera feed (the local webcam,
-or Pepper's simulated head camera). Detections are smoothed over a short window
-so a face must persist before it counts as "present", and presence is tracked
-with a looser threshold so brief dropouts don't end the interaction. Perception
-can run on a background thread so the live preview window stays responsive while
-the robot is busy talking.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/bayesian-network-dark.svg">
+    <img src="docs/diagrams/bayesian-network.svg" alt="Bayesian recommendation network" width="100%">
+  </picture>
+</p>
 
-**Face verification and consent-based enrollment.** When a webcam or Pepper
-camera source is active, every detected face is also checked against a small
-on-device recognizer (`cv2.face` LBPH — Local Binary Patterns Histograms, from
-`opencv-contrib-python`) trained on photos under
-`src/perception/known_faces/<name>/`. A confident match (LBPH distance ≤ 75 —
-empirically ~0 for a genuine match vs. ~180 for a stranger) identifies the
-person and personalises the greeting by name.
+The conversation doesn't need to fill all six. The network reasons over
+whatever evidence it has, and treats the rest as unknown.
 
-If the face isn't recognized, JARVIS asks for a name and explicit consent
-before touching the camera any further:
+<table>
+  <tr>
+    <td align="center"><img src="docs/img/events/museum.jpg" width="170" alt="Museum"><br/><sub><b>Museum</b></sub></td>
+    <td align="center"><img src="docs/img/events/concert.jpg" width="170" alt="Concert"><br/><sub><b>Concert</b></sub></td>
+    <td align="center"><img src="docs/img/events/sports.jpg" width="170" alt="Sports"><br/><sub><b>Sports</b></sub></td>
+    <td align="center"><img src="docs/img/events/food.jpg" width="170" alt="Food"><br/><sub><b>Food</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/events/outdoor.jpg" width="170" alt="Outdoor"><br/><sub><b>Outdoor</b></sub></td>
+    <td align="center"><img src="docs/img/events/nightlife.jpg" width="170" alt="Nightlife"><br/><sub><b>Nightlife</b></sub></td>
+    <td align="center"><img src="docs/img/events/workshop.jpg" width="170" alt="Workshop"><br/><sub><b>Workshop</b></sub></td>
+    <td align="center"><img src="docs/img/events/networking.jpg" width="170" alt="Networking"><br/><sub><b>Networking</b></sub></td>
+  </tr>
+</table>
 
-```
-JARVIS:  I don't think we've met yet. What's your name?
-You:     Alex
-JARVIS:  Nice to meet you, Alex. Would it be okay if I remember your face
-         for next time?
-You:     yes
-         (captures ~15 samples from the live feed, retrains, and confirms)
-JARVIS:  Great, I'll remember you next time, Alex!
-```
-
-Declining ("no") is honoured — JARVIS uses the given name for that
-conversation only and captures nothing. Enrollment reuses the camera feed the
-FSM is already reading (no second webcam connection is opened), and the saved
-photos never leave the machine: `src/perception/known_faces/` is
-git-ignored. People can also be pre-enrolled offline ahead of time — see
-*Pre-enrolling a face* under Running, below.
-
-### 3. The dialogue
-
-Instead of reading a fixed script, the dialogue is a small **graph of named
-agents** that decide what to ask next and how to interpret the answer:
-
-![Dialogue manager graph](docs/dialogue_graph.png)
-
-- **Router** — picks the next preference still unknown, in random order each
-  run (or finishes) — so the conversation doesn't always open with the same
-  question.
-- **QuestionFramer** — asks about it with an *open, experiential* question
-  generated by the language model (e.g. "what kind of evening would recharge
-  you?") rather than listing options. A randomly chosen style hint (calm
-  curiosity, a brief everyday comparison, an occasional understated touch of
-  dry wit, …) keeps the phrasing and angle from converging on the same
-  template across turns and runs. On a retry it rephrases.
-- **AnswerParser** — maps the free-form reply to one or more concrete
-  preferences, ignores vague or merely agreeable replies ("great", "sure")
-  instead of guessing, and declines to parse abusive language — asking the
-  person to rephrase instead of engaging with it.
-- **ConflictResolver** — if a new answer contradicts something already decided,
-  it re-opens that preference and asks a short either/or question to settle it.
-- **Evaluator** — judges whether the answer was usable: commit and move on,
-  rephrase and ask again, or fall back to a sensible default after a couple of
-  tries so the conversation never stalls.
-
-The language model runs on **Groq** (free, open models such as Llama 3.3) through
-an OpenAI-compatible API. Every value the model produces is passed through a
-**whitelist** before it can influence the recommendation, so only legal
-preference values ever reach the reasoning engine. If the model is unavailable,
-a deterministic keyword parser takes over so the agent still works offline.
-
-The six preferences the conversation tries to learn:
-
-| Preference | Possible values |
-|---|---|
-| Budget | Low · Med · High |
-| Group size | Solo · Small · Large |
-| Activity level | Relaxed · Moderate · Active |
-| Setting | Indoor · Outdoor · Either |
-| Time of day | Day · Evening · Night |
-| Interest | Arts · Music · Food · Sports |
-
-A conversation never has to fill all six — the reasoning engine works with
-partial information.
-
-### 4. The reasoning engine (Bayesian network)
-
-Recommendations come from a small, explainable three-layer Bayesian network built
-with **pyAgrum**:
-
-![Bayesian recommendation network](Proposal/bayesian_flowchart-preview.png)
-
-Each pair of observed preferences drives one interpretable latent factor — *what
-kind of venue, how social, how energetic* — and those three factors together
-produce a probability distribution over eight events:
-
-> **Museum · Concert · Sports · Food · Outdoor · Nightlife · Workshop · Networking**
-
-The conditional probability tables are generated from soft, human-readable rules
-rather than hand-tuned numbers, which keeps them consistent and makes the result
-explainable. Inference returns the events ranked by probability, and an
-`explain()` step reads back the most likely latent factors to phrase the *because…*
-sentence Pepper says aloud. Unobserved preferences simply fall back to their
-priors.
-
-### 5. Voice and presence
-
-- **Speech output** uses neural text-to-speech (`edge-tts`, a natural-sounding
-  voice) with an offline `pyttsx3` fallback, so the robot doesn't sound flat and
-  monotone. Speech and gestures are launched together and synchronised.
-- **Speech input** (optional) uses a **local Whisper** model
-  (`faster-whisper`) that runs entirely on-device — on the GPU when a CUDA build
-  is available, otherwise on the CPU — so the user can simply talk back.
-- **Tablet image** — when Pepper presents a recommendation, the matching event
-  picture is shown on a thin textured panel pinned to Pepper's tablet (it tracks
-  the tablet link as the robot moves), and is cleared at the end of each
-  interaction. If the simulator surface isn't available it falls back to a
-  desktop preview window. Source photos are decoded with Pillow — including
-  the two AVIF images (`workshop.avif`, `food.avif`), via
-  `pillow-avif-plugin`, since neither stock Pillow nor OpenCV read AVIF.
-
-### 6. Two runtimes, one agent
-
-The robot side (perception, behaviour, reasoning) targets **Python 3.8** for
-qiBullet / NAOqi compatibility, while the dialogue runs on **Python 3.11**
-(required by LangGraph). They live in two separate environments and are connected
-by a small **bridge**: the robot spawns the dialogue as a subprocess and they
-exchange newline-delimited JSON over stdio. The robot owns the voice and the
-camera; the dialogue owns the language understanding. If the dialogue can't be
-started, the robot falls back to a console stand-in so a demo still runs.
+<sub>The image Pepper shows on its tablet for each event.</sub>
 
 ---
 
-## Project layout
+## Documentation
 
-```
-Social-Event-Recommendation-Agent-on-Pepper-using-LangGraph-and-pyAgrum-BayesNet/
-├── src/                         # robot side (Python 3.8)
-│   ├── main.py                  # entry point / orchestrator
-│   ├── state_machine.py         # six-state interaction loop + face verify/enroll
-│   ├── contracts.py             # shared preference/result types + interfaces + agent name/slogan
-│   ├── dialogue_bridge.py       # client that drives the dialogue subprocess
-│   ├── enroll_face.py           # standalone CLI to pre-enroll a face offline
-│   ├── perception/              # Haar face detection, camera sources, LBPH face recognizer
-│   │   └── known_faces/         # enrolled face photos (local-only, git-ignored)
-│   ├── behaviour/               # speech (TTS), gestures, tablet image display
-│   └── recommender/             # pyAgrum Bayesian network
-├── dialogue/                    # dialogue service (Python 3.11, own uv project)
-│   └── dialogue/
-│       ├── graph.py             # the agent graph (Router/QuestionFramer/…)
-│       ├── llm.py               # Groq language-model parser + question framer
-│       ├── asr.py               # local Whisper speech-to-text
-│       ├── manager.py           # runs the graph and returns preferences
-│       └── bridge.py            # subprocess side of the JSON-stdio bridge
-├── imgs/                        # event images shown on Pepper's tablet
-└── Proposal/                    # project proposal (LaTeX + figures)
-```
+Each part of the system has its own README with diagrams and details.
+
+| Section | Covers | README |
+|---|---|---|
+| **Robot runtime and integration** | Orchestrator, interaction FSM, run modes, the two-runtime JSON bridge, fallbacks | [`src/README.md`](src/README.md) |
+| **Perception** | Camera sources, face detection with smoothing, face verification, consent-based enrollment | [`src/perception/README.md`](src/perception/README.md) |
+| **Dialogue** | LangGraph agent graph, LLM parsing and question framing, safety guards, speech input | [`dialogue/README.md`](dialogue/README.md) |
+| **Recommender** | Bayesian network topology, rule-generated CPTs, inference, explanations | [`src/recommender/README.md`](src/recommender/README.md) |
+| **Behaviour** | Speech and gesture coordination, gesture library, TTS fallbacks, tablet display | [`src/behaviour/README.md`](src/behaviour/README.md) |
+
+Further references:
+
+- [`TECHNICAL_DOCUMENTATION.md`](TECHNICAL_DOCUMENTATION.md): the full engineering reference, covering every module, parameter and design decision
+- [`dialogue/RUNNING.md`](dialogue/RUNNING.md): running the dialogue alone and inspecting traces in LangSmith and LangGraph Studio
+- [`PLAN.md`](PLAN.md): the original work plan, work packages and interfaces
+- [`docs/diagrams/build.py`](docs/diagrams/build.py): generates every figure in these READMEs (`uv run python docs/diagrams/build.py`)
+- [`Proposal/proposal.pdf`](Proposal/proposal.pdf): the project proposal
 
 ---
 
-## Setup
+## Quick start
 
-Both sides are managed with [uv](https://docs.astral.sh/uv/).
+### Prerequisites
+
+- [uv](https://docs.astral.sh/uv/). It installs the right Python version for each half.
+- A free [Groq API key](https://console.groq.com) for the real language-model dialogue. Without one, the dialogue falls back to an offline keyword parser.
+- Optional: a webcam, a microphone, and a CUDA GPU for faster Whisper.
+
+### 1. Install
 
 ```bash
-git clone git@github.com:SuneshSundarasami/Social-Event-Recommendation-Agent-on-Pepper-using-LangGraph-and-pyAgrum-BayesNet.git
+git clone https://github.com/SuneshSundarasami/Social-Event-Recommendation-Agent-on-Pepper-using-LangGraph-and-pyAgrum-BayesNet.git
 cd Social-Event-Recommendation-Agent-on-Pepper-using-LangGraph-and-pyAgrum-BayesNet
 
-# robot side (Python 3.8)
-uv sync
-
-# dialogue side (Python 3.11) — only needed for the real dialogue
-cd dialogue
-uv sync                 # core graph + language model
-uv sync --extra speech  # add this for spoken input (local Whisper)
+uv sync                                     # robot side (Python 3.8)
+cd dialogue && uv sync --extra speech       # dialogue side (Python 3.11); omit --extra speech for typed input only
+cd ..
 ```
 
-### API key and tracing
+### 2. Configure
 
-The dialogue language model needs a free **Groq** API key. Put it (and, if you
-want LangSmith tracing of the conversation) in `src/.env` (at the repo root):
+Create `src/.env` (it is git-ignored):
 
 ```ini
-GROQ_API_KEY="gsk_..."           # free key from console.groq.com
+GROQ_API_KEY="gsk_..."
 
-# optional — trace the dialogue graph at smith.langchain.com
+# Optional: trace every dialogue run at smith.langchain.com
 LANGSMITH_API_KEY="lsv2_..."
 LANGSMITH_TRACING="true"
 LANGSMITH_PROJECT="dialogue"
 ```
 
----
+### 3. Run
 
-## Running
+Run from the repository root. Each step up adds more of the real system:
 
 ```bash
-# from the repo root (the cloned folder)
-cd Social-Event-Recommendation-Agent-on-Pepper-using-LangGraph-and-pyAgrum-BayesNet
-
-# Headless demo — no camera, no simulator, one full interaction cycle:
+# 1. Headless smoke test: no camera, no simulator, one scripted interaction
 uv run python src/main.py --source scripted
 
-# Local webcam face detection with an interactive console conversation:
-uv run python src/main.py --source webcam --interactive
-
-# Pepper in the qiBullet GUI, seeing through its own head camera:
-uv run python src/main.py --source pepper
-
-# Full pipeline — the real language-model conversation (Pepper speaks each
-# question, you type the answer), then a Bayesian recommendation:
+# 2. Real LLM conversation in the terminal (Pepper's lines printed, you type)
 uv run python src/main.py --source scripted --dialogue real
 
-# Fully spoken & embodied — Pepper in the GUI asks out loud (neural voice),
-# you answer out loud (local Whisper), webcam face detection:
+# 3. Pepper in the qiBullet GUI, using its own simulated head camera
+uv run python src/main.py --source pepper --dialogue real
+
+# 4. Full demo: Pepper in the GUI, webcam face detection, spoken answers
 uv run python src/main.py --source hybrid --dialogue real --answer speech
 ```
 
-Key options:
-
-| Option | Choices | Meaning |
+| Flag | Choices | Meaning |
 |---|---|---|
-| `--source` | `scripted` · `webcam` · `pepper` · `hybrid` | where face detection comes from / whether Pepper is spawned |
-| `--dialogue` | `stub` · `real` | console stand-in vs. the real language-model graph |
-| `--answer` | `text` · `speech` | typed replies vs. spoken (local Whisper) |
-| `--preview` | flag | show the webcam window with detection boxes |
-| `--interactive` | flag | ask on the console instead of using defaults (stub dialogue) |
+| `--source` | `scripted` · `webcam` · `pepper` · `hybrid` | Where faces come from and whether Pepper is spawned |
+| `--dialogue` | `stub` · `real` | Console stand-in, or the LangGraph service through the bridge |
+| `--answer` | `text` · `speech` | Typed replies, or spoken replies via local Whisper |
+| `--preview` | flag | Show the webcam window with detection boxes |
+| `--interactive` | flag | With the stub dialogue, ask the questions on the console |
+| `--max-cycles` | int | Stop after N interactions |
 
-### Pre-enrolling a face (optional)
+See [`src/README.md`](src/README.md#run-modes) for what each source wires up,
+and [`src/behaviour/README.md`](src/behaviour/README.md#configuration) and
+[`dialogue/README.md`](dialogue/README.md#configuration) for the voice and
+speech-recognition environment variables.
 
-Face verification also works entirely live — JARVIS asks for a name and
-consent the first time it sees someone new (see *Face verification* above) —
-but a person can also be pre-enrolled offline ahead of time:
+### 4. Test
 
 ```bash
-uv run python src/enroll_face.py --name Alex
-uv run python src/enroll_face.py --name Alex --count 30 --camera-index 1
+uv run pytest                     # Bayesian recommender tests (robot side)
+cd dialogue && uv run pytest -q   # offline dialogue-graph tests
 ```
 
-Samples are saved to `src/perception/known_faces/<name>/` (git-ignored) and
-are picked up automatically the next time `--source webcam/pepper/hybrid`
-runs.
+Both suites run without a robot, simulator, network or microphone.
 
-### Voice configuration (environment variables)
+---
 
-| Variable | Default | Notes |
-|---|---|---|
-| `TTS_BACKEND` | `auto` | `edge` (neural) · `pyttsx3` (offline) · `none` |
-| `TTS_VOICE` | `en-GB-RyanNeural` | any Edge neural voice |
-| `TTS_RATE` | `-8%` | Edge neural speaking-rate offset (e.g. `-8%`, `+10%`) |
-| `TTS_PITCH` | `-5Hz` | Edge neural pitch offset (e.g. `-5Hz`, `+10Hz`) |
-| `WHISPER_MODEL` | `large-v3` on GPU, `small` on CPU | `tiny`/`base`/`small`/`medium`/`large-v3`; `large-v3` fits a 6 GB GPU with `int8_float16` (≈2.2 GB) |
-| `WHISPER_DEVICE` | `auto` | `cuda` / `cpu` (auto-detects a GPU) |
-| `WHISPER_COMPUTE` | `int8_float16` on GPU, `int8` on CPU | `float16` / `int8_float16` / `int8`; `int8_float16` keeps headroom for the qiBullet sim |
-| `WHISPER_MIC_INDEX` | — | input device index if the default mic is wrong |
+## Repository layout
 
-Neural TTS uses the network; local Whisper runs on-device. For a fully offline
-run set `TTS_BACKEND=pyttsx3`.
-
-### Inspecting the dialogue (optional)
-
-The conversation graph can be opened interactively in **LangGraph Studio**:
-
-```bash
-cd dialogue          # from the repo root
-uv run langgraph dev
+```text
+.
+├── src/                    Robot runtime (Python 3.8)          → src/README.md
+│   ├── main.py               entry point and component wiring
+│   ├── state_machine.py      six-state interaction FSM
+│   ├── contracts.py          shared types, interfaces, whitelist
+│   ├── dialogue_bridge.py    client for the dialogue service
+│   ├── enroll_face.py        pre-enroll a face offline
+│   ├── perception/           face detection and verification   → src/perception/README.md
+│   ├── recommender/          pyAgrum Bayesian network          → src/recommender/README.md
+│   └── behaviour/            speech, gestures, tablet          → src/behaviour/README.md
+├── dialogue/               Dialogue service (Python 3.11)      → dialogue/README.md
+│   ├── dialogue/             LangGraph graph, LLM, ASR, bridge server
+│   └── tests/                offline graph tests
+├── tests/                  Recommender tests
+├── imgs/                   Event images shown on the tablet
+├── demo/                   Demo recordings
+├── docs/                   Rendered figures
+├── Presentation/           Project slide deck
+└── Proposal/               Project proposal (LaTeX)
 ```
-
-and, if `LANGSMITH_*` is configured, every run is traced at
-[smith.langchain.com](https://smith.langchain.com).
 
 ---
 
 ## Tech stack
 
-- **qiBullet / PyBullet** — Pepper simulation, joint control, tablet texture
-- **OpenCV (opencv-contrib-python)** — Haar-cascade face detection and
-  `cv2.face` LBPH face recognition (verification + consent-based enrollment)
-- **LangGraph** — the multi-agent dialogue graph
-- **Groq** (Llama 3.3) — language understanding and question framing
-- **faster-whisper** — local, on-device speech-to-text (GPU/CPU)
-- **edge-tts / pyttsx3** — neural and offline speech output
-- **Pillow + pillow-avif-plugin** — event tablet image decoding (incl. AVIF)
-- **pyAgrum** — the explainable Bayesian recommendation network
-- **uv** — environment and dependency management
+| Layer | Technology |
+|---|---|
+| Simulation and control | [qiBullet](https://github.com/softbankrobotics-research/qibullet) / PyBullet |
+| Vision | OpenCV (`opencv-contrib-python`): Haar cascade detection, LBPH recognition |
+| Dialogue orchestration | [LangGraph](https://github.com/langchain-ai/langgraph), with LangSmith tracing and LangGraph Studio |
+| Language model | [Groq](https://groq.com) through its OpenAI-compatible API (`llama-3.1-8b-instant` by default) |
+| Speech recognition | [faster-whisper](https://github.com/SYSTRAN/faster-whisper), on-device, GPU or CPU |
+| Speech synthesis | `edge-tts` neural voice, with offline `pyttsx3` fallback |
+| Reasoning | [pyAgrum](https://agrum.gitlab.io/), exact inference with LazyPropagation |
+| Imaging | Pillow + `pillow-avif-plugin` |
+| Environments | [uv](https://docs.astral.sh/uv/), two isolated projects |
+
+---
+
+<div align="center">
+<sub>M.Sc. Autonomous Systems · Hochschule Bonn-Rhein-Sieg · HCICR course project by Sunesh Praveen Raja Sundarasami</sub>
+</div>

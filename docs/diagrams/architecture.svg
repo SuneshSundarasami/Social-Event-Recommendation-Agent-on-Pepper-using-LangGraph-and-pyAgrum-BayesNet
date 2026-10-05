@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="476" viewBox="0 0 1100 476" font-family="Arial, Helvetica, sans-serif">
+<title>System architecture. One route from perception to action, orchestrated by the interaction state machine across two Python processes</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-grey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9AA0A6"/><stop offset="1" stop-color="#7D838A"/></linearGradient><linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EE5243"/><stop offset="1" stop-color="#D93A2B"/></linearGradient><linearGradient id="g-navy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A4468"/><stop offset="1" stop-color="#0A2A43"/></linearGradient><linearGradient id="g-darkred" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C93030"/><stop offset="1" stop-color="#A91C1C"/></linearGradient><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient><linearGradient id="g-darkgreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25995D"/><stop offset="1" stop-color="#1A7B47"/></linearGradient><linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#167CCC"/><stop offset="1" stop-color="#0262AB"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#1F2328"/></marker><marker id="m-5A6270" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#5A6270"/></marker><marker id="m-7A8088" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#7A8088"/></marker><marker id="m-0A64B0" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#0A64B0"/></marker></defs>
+<rect x="700.0" y="20.0" width="300.0" height="66.0" rx="12.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="850.0" y="42.4" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Knowledge &amp; data</text>
+<text x="850.0" y="57.9" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">event catalogue → CPTs · 8 event images</text>
+<text x="850.0" y="73.5" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">schema in contracts.py</text>
+<ellipse cx="78.0" cy="216.0" rx="54.0" ry="37.0" fill="#FFFFFD" stroke="#1F2328" stroke-width="2" filter="url(#shadow)"/>
+<text x="78.0" y="213.2" font-size="15.0" fill="#1F2328" text-anchor="middle" font-weight="bold">Visitor</text>
+<text x="78.0" y="229.5" font-size="12.0" fill="#5A6270" text-anchor="middle">face · voice</text>
+<rect x="154.0" y="148.0" width="164.0" height="136.0" rx="12.0" fill="url(#g-red)" stroke="#B8301F" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="236.0" y="189.0" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Perception</text>
+<text x="236.0" y="204.8" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">sense + recognise</text>
+<text x="236.0" y="221.1" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">Haar + 5-frame smoothing</text>
+<text x="236.0" y="237.4" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">LBPH face verification</text>
+<text x="236.0" y="253.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">Whisper ASR (local)</text>
+<rect x="247.0" y="138.2" width="74.0" height="19.5" rx="9.8" fill="url(#g-navy)" stroke="#FFFFFE" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="284.0" y="151.8" font-size="10.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Py 3.8 · 3.11</text>
+<rect x="342.0" y="148.0" width="164.0" height="136.0" rx="12.0" fill="url(#g-darkred)" stroke="#8E1515" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="424.0" y="189.0" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Interpretation</text>
+<text x="424.0" y="204.8" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">understand</text>
+<text x="424.0" y="221.1" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">Groq LLM parses replies</text>
+<text x="424.0" y="237.4" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">into 6 discrete slots</text>
+<text x="424.0" y="253.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">whitelist-validated</text>
+<rect x="447.0" y="138.2" width="50.0" height="19.5" rx="9.8" fill="url(#g-navy)" stroke="#FFFFFE" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="472.0" y="151.8" font-size="10.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Py 3.11</text>
+<rect x="530.0" y="148.0" width="164.0" height="136.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="612.0" y="189.0" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Dialogue manager</text>
+<text x="612.0" y="204.8" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">manage turns</text>
+<text x="612.0" y="221.1" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">LangGraph slot-filling</text>
+<text x="612.0" y="237.4" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">runs in the FSM&#x27;s</text>
+<text x="612.0" y="253.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">Conversation state</text>
+<rect x="635.0" y="138.2" width="50.0" height="19.5" rx="9.8" fill="url(#g-navy)" stroke="#FFFFFE" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="660.0" y="151.8" font-size="10.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Py 3.11</text>
+<rect x="718.0" y="148.0" width="164.0" height="136.0" rx="12.0" fill="url(#g-darkgreen)" stroke="#146339" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="800.0" y="189.0" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Bayesian reasoning</text>
+<text x="800.0" y="204.8" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">decide</text>
+<text x="800.0" y="221.1" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">pyAgrum, 3 layers</text>
+<text x="800.0" y="237.4" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">6 → 3 → 8 events</text>
+<text x="800.0" y="253.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">ranked + explained</text>
+<rect x="825.9" y="138.2" width="44.2" height="19.5" rx="9.8" fill="url(#g-navy)" stroke="#FFFFFE" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="848.0" y="151.8" font-size="10.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Py 3.8</text>
+<rect x="906.0" y="148.0" width="164.0" height="136.0" rx="12.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="988.0" y="189.0" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Behaviour &amp; acting</text>
+<text x="988.0" y="204.8" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">create + perform</text>
+<text x="988.0" y="221.1" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">neural TTS + gestures</text>
+<text x="988.0" y="237.4" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">tablet image</text>
+<text x="988.0" y="253.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">Pepper in qiBullet</text>
+<rect x="1013.9" y="138.2" width="44.2" height="19.5" rx="9.8" fill="url(#g-navy)" stroke="#FFFFFE" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="1036.0" y="151.8" font-size="10.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Py 3.8</text>
+<path d="M132.0,216.0 L154.0,216.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M318.0,216.0 L342.0,216.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M506.0,216.0 L530.0,216.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M694.0,216.0 L718.0,216.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M882.0,216.0 L906.0,216.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M582.0,148.0 L582.0,130.0 Q582.0,118.0 570.0,118.0 L248.0,118.0 Q236.0,118.0 236.0,130.0 L236.0,148.0" fill="none" stroke="#5A6270" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-5A6270)"/>
+<text x="409.0" y="110.0" font-size="11.5" fill="#5A6270" text-anchor="middle" font-style="italic" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">per turn: Pepper asks (TTS) → visitor answers (ASR) → until all slots are filled</text>
+<path d="M790.0,86.0 L790.0,121.0 Q790.0,126.0 795.0,126.0 L795.0,126.0 Q800.0,126.0 800.0,131.0 L800.0,148.0" fill="none" stroke="#7A8088" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-7A8088)"/>
+<path d="M930.0,86.0 L930.0,114.0 Q930.0,126.0 942.0,126.0 L977.0,126.0 Q988.0,126.0 988.0,137.0 L988.0,148.0" fill="none" stroke="#7A8088" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-7A8088)"/>
+<rect x="154.0" y="318.0" width="916.0" height="42.0" rx="21.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="612.0" y="344.0" font-size="13.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Interaction FSM  ·  Idle → Greeting → Conversation → Reasoning → Recommendation → Farewell</text>
+<line x1="236.0" y1="284.0" x2="236.0" y2="318.0" stroke="#9FB2C6" stroke-width="2.0" stroke-dasharray="3 4"/>
+<line x1="424.0" y1="284.0" x2="424.0" y2="318.0" stroke="#9FB2C6" stroke-width="2.0" stroke-dasharray="3 4"/>
+<line x1="612.0" y1="284.0" x2="612.0" y2="318.0" stroke="#9FB2C6" stroke-width="2.0" stroke-dasharray="3 4"/>
+<line x1="800.0" y1="284.0" x2="800.0" y2="318.0" stroke="#9FB2C6" stroke-width="2.0" stroke-dasharray="3 4"/>
+<line x1="988.0" y1="284.0" x2="988.0" y2="318.0" stroke="#9FB2C6" stroke-width="2.0" stroke-dasharray="3 4"/>
+<path d="M1070.0,216.0 L1070.0,216.0 L1070.0,384.0 Q1070.0,396.0 1058.0,396.0 L90.0,396.0 Q78.0,396.0 78.0,384.0 L78.0,253.0" fill="none" stroke="#0A64B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-0A64B0)"/>
+<text x="560.0" y="387.0" font-size="12.0" fill="#0A64B0" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">the visitor sees and hears the result: speech · gestures · tablet image</text>
+<rect x="28.0" y="440.0" width="14.0" height="14.0" rx="4.0" fill="url(#g-red)" stroke="#B8301F" stroke-width="1.2"/>
+<text x="48.0" y="451.5" font-size="12.0" fill="#5A6270" text-anchor="start">sensing</text>
+<rect x="111.8" y="440.0" width="14.0" height="14.0" rx="4.0" fill="url(#g-darkred)" stroke="#8E1515" stroke-width="1.2"/>
+<text x="131.8" y="451.5" font-size="12.0" fill="#5A6270" text-anchor="start">understanding</text>
+<rect x="230.5" y="440.0" width="14.0" height="14.0" rx="4.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2"/>
+<text x="250.5" y="451.5" font-size="12.0" fill="#5A6270" text-anchor="start">dialogue</text>
+<rect x="318.5" y="440.0" width="14.0" height="14.0" rx="4.0" fill="url(#g-darkgreen)" stroke="#146339" stroke-width="1.2"/>
+<text x="338.5" y="451.5" font-size="12.0" fill="#5A6270" text-anchor="start">reasoning</text>
+<rect x="413.8" y="440.0" width="14.0" height="14.0" rx="4.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2"/>
+<text x="433.8" y="451.5" font-size="12.0" fill="#5A6270" text-anchor="start">acting</text>
+<rect x="488.0" y="440.0" width="14.0" height="14.0" rx="4.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2"/>
+<text x="508.0" y="451.5" font-size="12.0" fill="#5A6270" text-anchor="start">knowledge</text>
+<rect x="588.0" y="440.0" width="14.0" height="14.0" rx="4.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2"/>
+<text x="608.0" y="451.5" font-size="12.0" fill="#5A6270" text-anchor="start">orchestration</text>
+<text x="1072.0" y="452.0" font-size="11.5" fill="#5A6270" text-anchor="end" font-style="italic">Py 3.8 = robot process · Py 3.11 = dialogue process</text>
+</svg>

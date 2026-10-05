@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="436" viewBox="0 0 1240 436" font-family="Arial, Helvetica, sans-serif">
+<title>Dialogue manager. A LangGraph StateGraph (dialogue/graph.py) that runs inside the FSM&#x27;s Conversation state and fills the six preference slots</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-grey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9AA0A6"/><stop offset="1" stop-color="#7D838A"/></linearGradient><linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4BB847"/><stop offset="1" stop-color="#369F32"/></linearGradient><linearGradient id="g-darkred" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C93030"/><stop offset="1" stop-color="#A91C1C"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#1F2328"/></marker><marker id="m-1E8449" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#1E8449"/></marker><marker id="m-C62828" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#C62828"/></marker><linearGradient id="g-lightgreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7CCB5A"/><stop offset="1" stop-color="#62B444"/></linearGradient></defs>
+<rect x="24.0" y="20.0" width="1192.0" height="392.0" rx="22.0" fill="#F2FAF1" stroke="#8CCB88" stroke-width="1.8"/>
+<ellipse cx="86.0" cy="191.0" rx="42.0" ry="23.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="86.0" y="195.9" font-size="13.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">START</text>
+<rect x="166.0" y="148.0" width="150.0" height="86.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="241.0" y="179.9" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Router</text>
+<text x="241.0" y="196.0" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">pick a random</text>
+<text x="241.0" y="212.3" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">unfilled slot</text>
+<rect x="372.0" y="148.0" width="170.0" height="86.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="457.0" y="179.9" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">QuestionFramer</text>
+<text x="457.0" y="196.0" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">LLM writes one open</text>
+<text x="457.0" y="212.3" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">question · robot asks</text>
+<rect x="598.0" y="148.0" width="170.0" height="86.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="683.0" y="179.9" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">AnswerParser</text>
+<text x="683.0" y="196.0" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">abuse filter → LLM</text>
+<text x="683.0" y="212.3" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">→ whitelist → guard</text>
+<rect x="824.0" y="148.0" width="165.0" height="86.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="906.5" y="179.9" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">ConflictResolver</text>
+<text x="906.5" y="196.0" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">contradiction?</text>
+<text x="906.5" y="212.3" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">re-open the slot</text>
+<rect x="1045.0" y="148.0" width="150.0" height="86.0" rx="12.0" fill="url(#g-green)" stroke="#2A8427" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="1120.0" y="179.9" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Evaluator</text>
+<text x="1120.0" y="196.0" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">commit, rephrase</text>
+<text x="1120.0" y="212.3" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">or apply default</text>
+<rect x="500.1" y="138.2" width="35.8" height="19.5" rx="9.8" fill="url(#g-darkred)" stroke="#FFFFFE" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="518.0" y="151.8" font-size="10.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">LLM</text>
+<rect x="726.1" y="138.2" width="35.8" height="19.5" rx="9.8" fill="url(#g-darkred)" stroke="#FFFFFE" stroke-width="2.0" filter="url(#shadow)"/>
+<text x="744.0" y="151.8" font-size="10.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">LLM</text>
+<path d="M128.0,191.0 L166.0,191.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M316.0,191.0 L372.0,191.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="344.0" y="183.0" font-size="11.0" fill="#1F2328" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">missing</text>
+<path d="M542.0,191.0 L598.0,191.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M768.0,191.0 L824.0,191.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M989.0,191.0 L1045.0,191.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="1017.0" y="183.0" font-size="10.5" fill="#1F2328" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">no conflict</text>
+<path d="M1155.0,148.0 L1155.0,72.0 Q1155.0,60.0 1143.0,60.0 L253.0,60.0 Q241.0,60.0 241.0,72.0 L241.0,148.0" fill="none" stroke="#1E8449" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1E8449)"/>
+<text x="680.5" y="52.0" font-size="12.0" fill="#1E8449" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">usable · committed · or default applied → next slot</text>
+<path d="M1095.0,148.0 L1095.0,98.0 Q1095.0,86.0 1083.0,86.0 L444.0,86.0 Q432.0,86.0 432.0,98.0 L432.0,148.0" fill="none" stroke="#C62828" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-C62828)"/>
+<text x="848.5" y="78.0" font-size="12.0" fill="#C62828" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">answer not usable → rephrase (up to 2×)</text>
+<path d="M906.5,148.0 L906.5,124.0 Q906.5,112.0 894.5,112.0 L494.0,112.0 Q482.0,112.0 482.0,124.0 L482.0,148.0" fill="none" stroke="#C62828" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-C62828)"/>
+<text x="691.8" y="104.0" font-size="12.0" fill="#C62828" text-anchor="middle" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">conflict → re-open slot, ask either/or</text>
+<rect x="166.0" y="292.0" width="150.0" height="48.0" rx="12.0" fill="url(#g-lightgreen)" stroke="#4C9634" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="241.0" y="321.2" font-size="14.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Finish</text>
+<ellipse cx="86.0" cy="316.0" rx="42.0" ry="23.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="86.0" y="320.9" font-size="13.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">END</text>
+<path d="M241.0,234.0 L241.0,292.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="251.0" y="266.0" font-size="11.0" fill="#1F2328" text-anchor="start" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">all filled</text>
+<path d="M166.0,316.0 L128.0,316.0" fill="none" stroke="#1F2328" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M316.0,316.0 L1180.0,316.0" fill="none" stroke="#1E8449" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-1E8449)"/>
+<text x="800.0" y="308.0" font-size="12.0" fill="#1E8449" text-anchor="middle" font-style="italic" stroke="#FFFFFE" stroke-width="4" stroke-linejoin="round" paint-order="stroke">returns the Evidence dict to the FSM → Bayesian reasoning</text>
+<text x="457.0" y="256.0" font-size="11.5" fill="#0A64B0" text-anchor="middle" font-style="italic">↑ question out via TTS · answer in via ASR or keyboard</text>
+<text x="743.0" y="274.0" font-size="11.5" fill="#B32B21" text-anchor="middle" font-style="italic">↑ Groq LLM wrapped in safety guards</text>
+</svg>

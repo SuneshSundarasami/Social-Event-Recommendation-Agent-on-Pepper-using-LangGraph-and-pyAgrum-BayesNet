@@ -1,3 +1,5 @@
+<sub>[Home](../README.md) › [Dialogue](README.md) › **Running and tracing**</sub>
+
 # Running the dialogue manager & viewing traces
 
 Quick guide to running WP2 and inspecting runs in LangSmith / LangGraph Studio.
@@ -5,12 +7,12 @@ Quick guide to running WP2 and inspecting runs in LangSmith / LangGraph Studio.
 ## 1. Setup (once)
 
 ```bash
-cd Project/dialogue
+cd dialogue          # from the repository root
 uv sync                 # core graph + LLM + tests
 uv sync --extra speech  # optional: microphone ASR (SpeechRecognition + pyaudio)
 ```
 
-Keys live in `Project/src/.env` (gitignored):
+Keys live in `src/.env` at the repository root (gitignored):
 
 ```
 GROK_KEY="gsk_..."                  # Groq API key (the LLM)
@@ -61,7 +63,7 @@ conflict.
 ## 4. Visualize / step through in LangGraph Studio
 
 ```bash
-cd Project/dialogue
+cd dialogue          # from the repository root
 uv run langgraph dev          # opens the Studio web UI
 ```
 

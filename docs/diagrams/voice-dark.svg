@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="326" viewBox="0 0 1000 326" font-family="Arial, Helvetica, sans-serif">
+<title>Voice. TTS_BACKEND picks the speech engine; lines are spoken on a worker thread so gestures can run at the same time</title>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.18"/></filter><linearGradient id="g-navy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A4468"/><stop offset="1" stop-color="#0A2A43"/></linearGradient><linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#167CCC"/><stop offset="1" stop-color="#0262AB"/></linearGradient><linearGradient id="g-steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A88BA"/><stop offset="1" stop-color="#44709F"/></linearGradient><linearGradient id="g-grey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9AA0A6"/><stop offset="1" stop-color="#7D838A"/></linearGradient><marker id="m-1F2328" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#E6EDF3"/></marker><marker id="m-C62828" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1.5 L11,6 L1,10.5 L3.5,6 z" fill="#F85149"/></marker></defs>
+<rect x="58.8" y="120.0" width="118.5" height="40.0" rx="20.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="118.0" y="144.9" font-size="13.5" fill="#FFFFFF" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-weight="bold">TTS_BACKEND</text>
+<rect x="330.0" y="28.0" width="230.0" height="80.0" rx="12.0" fill="url(#g-blue)" stroke="#024F8A" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="445.0" y="56.7" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">edge-tts neural voice</text>
+<text x="445.0" y="72.7" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">en-GB-RyanNeural</text>
+<text x="445.0" y="89.0" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">rate −8% · pitch −5 Hz</text>
+<rect x="330.0" y="148.0" width="230.0" height="64.0" rx="12.0" fill="url(#g-steel)" stroke="#375C85" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="445.0" y="176.9" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">pyttsx3</text>
+<text x="445.0" y="192.9" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">offline SAPI5 / eSpeak</text>
+<rect x="330.0" y="246.0" width="230.0" height="52.0" rx="12.0" fill="url(#g-grey)" stroke="#676D73" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="445.0" y="269.2" font-size="14.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">silent</text>
+<text x="445.0" y="284.7" font-size="11.5" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">text printed only</text>
+<path d="M177.2,140.0 L228.0,140.0 Q240.0,140.0 240.0,128.0 L240.0,80.0 Q240.0,68.0 252.0,68.0 L330.0,68.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="285.0" y="60.0" font-size="11.5" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">auto · edge</text>
+<path d="M177.2,140.0 L228.0,140.0 Q240.0,140.0 240.0,152.0 L240.0,168.0 Q240.0,180.0 252.0,180.0 L330.0,180.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="285.0" y="172.0" font-size="11.5" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">pyttsx3</text>
+<path d="M177.2,140.0 L228.0,140.0 Q240.0,140.0 240.0,152.0 L240.0,260.0 Q240.0,272.0 252.0,272.0 L330.0,272.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<text x="285.0" y="264.0" font-size="11.5" fill="#E6EDF3" text-anchor="middle" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">none</text>
+<path d="M505.0,108.0 L505.0,148.0" fill="none" stroke="#F85149" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m-C62828)"/>
+<text x="493.0" y="132.0" font-size="11.5" fill="#F85149" text-anchor="end" font-style="italic" stroke="#0D1117" stroke-width="4" stroke-linejoin="round" paint-order="stroke">offline or failing → this line falls back</text>
+<rect x="700.0" y="86.0" width="270.0" height="98.0" rx="12.0" fill="url(#g-navy)" stroke="#061C2E" stroke-width="1.2" filter="url(#shadow)"/>
+<text x="835.0" y="116.1" font-size="15.0" fill="#FFFFFF" text-anchor="middle" font-weight="bold">TtsEngine</text>
+<text x="835.0" y="132.0" font-size="11.5" fill="#FFFFFF" text-anchor="middle" font-style="italic" fill-opacity="0.90">worker thread</text>
+<text x="835.0" y="148.2" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">queues each line, speaks it,</text>
+<text x="835.0" y="164.6" font-size="12.0" fill="#FFFFFF" text-anchor="middle" fill-opacity="0.95">signals when it has finished</text>
+<path d="M560.0,68.0 L628.0,68.0 Q640.0,68.0 640.0,80.0 L640.0,109.0 Q640.0,121.0 652.0,121.0 L700.0,121.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+<path d="M560.0,180.0 L628.0,180.0 Q640.0,180.0 640.0,168.0 L640.0,161.0 Q640.0,149.0 652.0,149.0 L700.0,149.0" fill="none" stroke="#E6EDF3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#m-1F2328)"/>
+</svg>
